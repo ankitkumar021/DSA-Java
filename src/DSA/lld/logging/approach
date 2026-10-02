@@ -1,0 +1,181 @@
+Low-Level Design: Logging System 📝
+A Logging System is designed to efficiently capture, filter,
+and output application events with varying levels of severity.
+The system needs to support multiple log levels, formatting options, destinations,
+and filtering capabilities while maintaining a clean separation of concerns.
+The system should be extensible, allowing for new log handlers, formatters,
+and destinations to be easily integrated.
+
+Rules of the System:
+Setup:
+
+• The system supports multiple log levels (DEBUG, INFO, WARNING, ERROR, FATAL)
+
+• Logs have attributes like timestamp, level, message, and context data
+
+• The system can route logs to different destinations based on level and content
+
+‍
+
+Operation:
+
+• Applications create log messages with a specified severity level
+
+• Each log passes through a chain of handlers that decide whether to process it
+
+• Handlers can filter, format, and dispatch logs to various destinations
+
+• The system can be configured to customize logging behavior at runtime
+
+‍
+
+Features:
+
+• Level-based filtering to control which logs are processed
+
+• Formatting options for different output destinations
+
+• Support for multiple output destinations (console, file, network, etc.)
+
+• Context enrichment to add additional information to log entries
+
+Interview Setting 🤝
+Point 1: Introduction and Vague Problem Statement:
+Interviewer: Let's start with a basic problem statement. Design a Logging System.
+
+‍
+
+Candidate: Certainly! Here's my understanding of the Logging System requirements:
+
+• The system will process log messages with different severity levels
+
+• Logs should be filtered based on configuration settings
+
+• The system should support various output destinations
+
+Is this the expected direction for the design?
+
+‍
+
+Interviewer: Yes, you are on the right track. Please continue.
+
+‍
+
+Candidate: Great! Before diving into the design, I'd like to clarify a few requirements:
+
+• What log levels should the system support?
+
+• What types of destinations should we consider?
+
+• Are there any specific filtering or formatting requirements?
+
+‍
+
+Point 2: Clarifying Requirements:
+Interviewer: We want a system that:
+
+• Supports the standard log levels (DEBUG, INFO, WARNING, ERROR, FATAL)
+
+• Log messages with timestamp, level, and content
+
+• Multiple output destinations (console, file, database)
+
+• Configuration mechanism for log level and output destination
+
+• Extensibility for new log levels and output destinations
+
+‍
+
+Candidate: To summarize, the key requirements are:
+
+• A flexible logging system with standard severity levels
+
+• Support for multiple output destinations
+
+• Configurable filtering capabilities
+
+‍
+
+Interviewer: Perfect, let's proceed.
+
+‍
+
+Point 3: Identifying Key Components:
+Candidate: Now that we have the requirements,
+ let's identify the key components of our Logging System:
+
+• Log Level: Enum representing different severity levels
+
+• Log Message : Class which contains log message with all its attributes.
+
+• Log Config : This class holds the configuration settings for the logger.
+
+• Log Appender : Interface responsible for writing logs to destinations.
+
+• Logger : Singleton Class that provided the main logging functionality.
+
+‍
+
+Interviewer: That sounds good. Let's proceed with the design details.
+
+‍
+
+Point 4: Design Challenges:
+Interviewer: What design challenges do you anticipate?
+
+‍
+
+Candidate: The key challenges for the Logging System include:
+
+• Chain Construction: Building a flexible chain of handlers that can be modified at runtime
+
+• Performance Considerations: Ensuring efficient log processing,
+ especially for high-volume applications
+
+• Configuration Management: Providing an easy way to configure the system
+
+‍
+
+Point 5: Approach:
+Interviewer: How would you approach these challenges?
+
+‍
+
+Candidate: I propose using several design patterns effectively. Here are my strategies:
+
+Chain of Responsibility Pattern for Log Processing:
+• Creates a chain of log handlers
+
+• Each handler decides whether to process the log or pass it along
+
+• Enables separation of concerns for filtering, formatting, and output
+
+‍
+
+Strategy Pattern for Log Appenders:
+• Encapsulates different Log Appending Strategies.
+
+• Allows runtime selection of Log appenders (Console, File etc.)
+
+• Makes it easy to add new Appender options
+
+‍
+
+Singleton Pattern for Logger Instance:
+• Provides a global access point to the logging system
+
+• Ensures consistent configuration across the application
+
+‍
+
+Interviewer: That sounds like a solid approach. Let's delve into the implementation details.
+
+‍
+
+Point 6: Implementation:
+Interviewer: Ready to discuss implementation?
+
+‍
+
+Candidate: Yes. I'll focus on implementing the design patterns
+we discussed and show how they work together in the Logging System

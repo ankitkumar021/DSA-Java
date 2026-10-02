@@ -1,0 +1,26 @@
+
+a:0/1 knapsack(parent problem)
+
+a->fractional knapsack(greedy)->here fraction w can go inside
+ knapsack(let say 10 kg and 9kg is already filled now w(2kg).so we can add 1kg of 2kg.
+b->0/1 ->knapsack(dp)->either the item of a particular w go
+inside knapsack or make a spcae of w than it will go otherwise it will not go
+c->unbounded knapsack->we can put the a particular item any number of time in the knapsack
+
+indetification:
+	->choice
+	->optimal
+
+DP:recursion->memoization->top-down
+
+in memo and topdown we basically sorted the ans so intotal dp = recursion+storage
+
+1:subset sum
+2:equal sum parition
+3:count subset sum
+4:minimum subset sum difference
+5:target sum
+6:number of subset given differnce
+
+memoization approach->recursion+table
+bottom up->iterative approach(only table)
