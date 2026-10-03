@@ -1,4 +1,4 @@
-package DSA.systemdesign.practicehashmap;
+package LLD.practicehashmap;
 
 import DSA.lld.hashmap.HashMapImplementation;
 

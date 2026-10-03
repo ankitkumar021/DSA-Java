@@ -1,4 +1,4 @@
-package DSA.systemdesign.ratelimiting;
+package LLD.ratelimiting;
 //Token Bucket: Requests consume tokens, which regenerate at a fixed rate.
 //It allows short bursts up to the bucket capacity while preventing continuous overload.
 

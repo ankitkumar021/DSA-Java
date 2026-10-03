@@ -1,4 +1,4 @@
-package DSA.systemdesign.practicelru;
+package LLD.practicelru;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

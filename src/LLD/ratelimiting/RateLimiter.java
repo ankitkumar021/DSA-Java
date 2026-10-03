@@ -1,4 +1,4 @@
-package DSA.systemdesign.ratelimiting;
+package LLD.ratelimiting;
 
 //Design a logger system that receives a stream of messages along with their timestamps.
 // Each unique message should only be printed at most every 10 seconds

@@ -1,0 +1,14 @@
+
+function requirement:(define the the system)
+
+    1:focus on entity and its functionality & behaviour
+
+
+Non-functional requirement:(how the system should perform)
+
+    1:focus on the following:
+        a:performance
+        b:scalability
+        c:availability
+        d:concurrency
+    2:trade-off

@@ -1,0 +1,18 @@
+
+requirement:
+
+    1:what are the log level you want me to support?
+        a:INFO
+        B:WARN
+        C:ERROR
+        D:DEBUG
+
+    2:do want the log message to be shown shown on the console or want me to append it
+        to the file
+    ->here the interviewer asked both
+
+
+    3:do want the log message in simple text format or in the json format
+    ->here the interviewer asked both
+
+    4:now think of design pattern
