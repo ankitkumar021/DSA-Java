@@ -1,0 +1,11 @@
+
+By default any class can be extended unless marked final
+
+
+Sealed class:A sealed restrict which class can extend the sealed class.
+             sealed use permits keyword to allow the class who can extends/implements it
+             permits class can be final/sealed/non sealed
+
+advantage->better controls over class hierarchy
+           ->improves readability and maintainability
+           ->safer api design

@@ -23,12 +23,16 @@ public class SearchTargetInMatrix2 {
         int row = m - 1;
         int col = 0;
 
-//will start from last row and first col
+        // will start from last row and first col,
+        // because if the row target is smaller we are going up
+        // and if target is smaller we are going right
         while (row >= 0 && col < n) {
             if (target == matrix[row][col]) {
                 return true;
             }
-            //smaller value should be present at the above row sice it is sort from top to bottom and we have started our iteration from bottom
+            //smaller value should be present at the above row
+            // since it is sort from top to bottom, and
+            // we have started our iteration from bottom
             if (target < matrix[row][col]) {
                 row = row - 1;
             } else {

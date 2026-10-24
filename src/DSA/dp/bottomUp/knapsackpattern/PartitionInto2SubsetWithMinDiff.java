@@ -4,7 +4,7 @@ public class PartitionInto2SubsetWithMinDiff {
    public static void main(String[] args) {
 
     }
-    public int minDifference(int arr[]) {
+    public int minDifference(int[] arr) {
 
         int n = arr.length;
         int sumTotal = 0;

@@ -7,6 +7,20 @@ public class BuyAndSellStock2 {
 
     }
     public static int maxProfit(int[] prices) {
+        int left =0;
+        int right =1;
+        int mprofit=0;
+        while(right<prices.length){
+            if(prices[right]>prices[left]){
+                mprofit += prices[right]-prices[left];
+            }
+            right++;
+            left++;
+        }
+        return mprofit;
+
+    }
+/*    public static int maxProfit(int[] prices) {
         //draw x and y diagram you will understand
         //logic the cur stock prices  is greater than prev means we have profit
         int profit = 0;
@@ -17,5 +31,5 @@ public class BuyAndSellStock2 {
         }
 
         return profit;
-    }
+    }*/
 }

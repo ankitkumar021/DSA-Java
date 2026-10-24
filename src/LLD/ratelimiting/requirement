@@ -1,0 +1,10 @@
+Functional requirements:
+    a:The rate limiter should decide whether a request is allowed or rejected based on a
+      configured limit.
+    b:It should support different rate-limiting algo such as token bucket and sliding window
+
+Non-Functional requirements:
+    a:The rate limiter should have low latency and high throughput and thread safe
+    b:the design should be extensible so that new rate-limiting algo can ne added easily
+
+

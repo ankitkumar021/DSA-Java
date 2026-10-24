@@ -21,7 +21,7 @@ public class ProductOfArrayExceptSelf {
 
         left[0] = 1;//1 as there nothing before 0th index to multiply
         for (int i = 1; i < n; i++) {
-            left[i] = nums[i - 1] * left[i - 1];//why i-1//left subarray must contains everything before i
+            left[i] = nums[i - 1] * left[i - 1];//why i-1//left subarray must contain everything before i
         }
         right[n - 1] = 1;//1 as there nothing after nth index to multiply
         for (int j = n - 2; j >= 0; j--) {

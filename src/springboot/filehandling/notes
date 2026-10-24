@@ -1,0 +1,87 @@
+
+flow:client->controller()->service(validate,save,return response)->storage(local folder,s3,db)
+
+//upload(post)
+
+post end-point: files/uploads/multipart/file
+@RestController
+@RequestMapping("files")
+
+@PostMapping("uploads")
+public ResponseEntity<String> uploadFile(@RequestParam("file") MulitpartFile file){
+        fileService.upload(file);
+        return Response.ok("File upload successfully");
+}
+
+//important method multipartFile :
+1:getOriginalFileName()
+2:getContentType()
+3:getSize()
+4:getBytes()
+5:transferToPath(save file to a location)
+6:isEmpty()
+
+//service class
+service class{
+
+//check for duplicate file because files can overwrite each other(use hash(sha256)fn)
+use above method is multipart file to process it)
+then save it in the db/s3/blob
+(in distributes system where they are multiple instance us there i would store in s3 )
+
+}
+
+//validation
+
+List<String> allowTypes/enum
+
+list.of(image/jpg,.jpeg,.png,.pdf(application/pdf,.csv,.txt,.zip);
+
+1:isEmpty->check
+2:allowTypes->checks
+3:max size->check(ex->5mb(5*1024*1024).(if filesize()>maxSize()) thow exception
+
+//application.properties
+1:set maxsize
+
+//while defining the entity class in jpa
+String contentType
+@Lob
+private byte[] data
+
+//Get request
+@GetMapping("/download/"filename")
+public ResponseEntity<?> downloadFile(@PathVariable String fileName){
+
+}
+
+important follow question
+1: (in distributes system where they are multiple instance goes -> i would store in s3 )
+2:how do handle large file 2gb
+
+  optiona:a -> in this scenario we cannot store it into the bytes (2gb->byte[]->jvm->oom)
+                instead use streaming
+                    try(InputStream inputStream = file.getInputStream()){
+                        //stream to storage
+                    }
+
+  option:b ->use an s3 upload mechanism designed for streaming/multipart uploads
+
+3:what if s3 is down ?
+1:timeout
+2:meaningful error response (503 service unavailable)
+
+what happens if 500 mb data data upload fails in s3
+-> since springBoot support multipart upload
+-> divide 500 in 10 parts(chunks)
+->fails at part4 (1,2,3 is already upload in s3)->we don't have to upload again
+->client can retry again(don't reupload entire file)
+->once all parts complete call completeMultipartUpload and s3 create the final object
+follow back question what if client don't came for part4 and future?
+    ->we can configure s3 lifecycle rule
+     to abort incomplete multipart upload after a certain no of days
+
+who do handle the scalability
+->i would preferably use presigned URLs so the client uploads the parts directly to s3 rather
+than sending the entire file through springboot
+

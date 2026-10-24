@@ -16,7 +16,7 @@ public class JumpGame2 {
         //but we dont know we have jump step1 or steps 2 to get the min steps to
         //reach at the end so for that go further
 
-        //to check have 2 variable near and far varibale and check all the jumps
+        //to check have 2 variable near and far variable and check all the jumps
         //between the positions and get the farthest position everytime time
 
         int near = 0;

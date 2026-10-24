@@ -33,10 +33,9 @@ public class LevelOrderTraversalUsingBFS {
                 if(node.left!=null){
                     q.offer(node.left);
                 }
-                if(node.right!=null){
+                if(node.right!=null) {
                     q.offer(node.right);
                 }
-
             }
             //add the current level list into list of list
             ans.add(levelList);

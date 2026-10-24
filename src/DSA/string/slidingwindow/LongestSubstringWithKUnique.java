@@ -19,7 +19,7 @@ public class LongestSubstringWithKUnique {
             char c = s.charAt(r);
             map.put(c, map.getOrDefault(c, 0) + 1);
 
-            while (map.size() > k) {
+            while (map.size() > k) {//character repeating is allowed
                 char ch = s.charAt(l);
                 map.put(ch, map.get(ch) - 1);
                 if (map.get(ch) == 0) {

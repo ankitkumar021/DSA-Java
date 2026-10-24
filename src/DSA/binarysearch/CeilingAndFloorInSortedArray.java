@@ -5,8 +5,8 @@ public class CeilingAndFloorInSortedArray {
     public static void main(String[] args) {
         int[] arr = {1, 2, 8, 10, 10, 12, 19};
         int x = 5;
-        System.out.println(findCeil(arr,x));
-        System.out.println(findFloor(arr,x));
+        System.out.println("ceiling value " + findCeil(arr,x));
+        System.out.println("floor value " + findFloor(arr,x));
     }
     public static int findCeil(int[] arr, int x) {
         // code here
@@ -15,7 +15,7 @@ public class CeilingAndFloorInSortedArray {
         int ans=-1;
         while(s<=e){
             int m = s+(e-s)/2;
-            if(arr[m] >= x){
+            if(arr[m] >= x){//only this is changed
                 ans = m;
                 e=m-1;
 

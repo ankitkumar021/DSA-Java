@@ -1,7 +1,7 @@
 package DSA.graph;
-
+//https://leetcode.com/problems/course-schedule-ii/
 import java.util.*;
-
+////here mainly whose indegree becomes 0 add into the array which we have to return
 public class CourseSchedule2 {
     public static void main(String[] args) {
        int[][] prerequisites = {

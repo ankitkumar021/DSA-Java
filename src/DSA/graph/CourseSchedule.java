@@ -1,5 +1,5 @@
 package DSA.graph;
-
+//https://leetcode.com/problems/course-schedule/
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +11,11 @@ public class CourseSchedule {
        int[][] prerequisites = {{1,0}};
         System.out.println(canFinish(numCourses,prerequisites));//true
     }
+//idea
+//first populate the graph
+//populate the indegree
+//add to queue whose indegree is 0
+//keeping and degree the indegree and if it 0 remove the queue
     public static boolean canFinish(int numCourses, int[][] prerequisites) {
 
         List<List<Integer>> adj = new ArrayList<>();
@@ -20,7 +25,7 @@ public class CourseSchedule {
 
         //populate the graph
         for(int[] pre : prerequisites){
-            adj.get(pre[0]).add(pre[1]);
+            adj.get(pre[1]).add(pre[0]);
         }
 
         //populate the indegree
@@ -51,7 +56,7 @@ public class CourseSchedule {
 
             //now remove from indegree also
             for(int it: adj.get(node)){
-                indegree[it]--;//decrese the indegree
+                indegree[it]--;//decrease the indegree
                 if(indegree[it] == 0){//if 0 add to the queue
                     q.offer(it);
                 }

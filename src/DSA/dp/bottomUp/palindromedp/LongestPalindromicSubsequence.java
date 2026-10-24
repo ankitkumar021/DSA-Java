@@ -10,7 +10,7 @@ public class LongestPalindromicSubsequence {
 
     public static int longestPalindromeSubseq(String s) {
 
-        //it is based on LCS pattern there we not 2 string
+        //it is based on LCS pattern there  2 string
         //but here only 1 is given so created another string with same by reverse
         String sb = new StringBuilder(s).reverse().toString();
         int m = s.length();

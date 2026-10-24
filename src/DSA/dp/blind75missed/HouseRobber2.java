@@ -1,7 +1,8 @@
 package DSA.dp.blind75missed;
 //here the house is in circular ,
 //so you have skip first if select last or skip last if select first
-//so to solve this I break into 2 linear array make house robber and solve it by taking the
+//so to solve this I break into 2 linear array make house robber and
+//solve it by taking the
 //max of both the combination
 //https://leetcode.com/problems/house-robber-ii/description/
 public class HouseRobber2 {

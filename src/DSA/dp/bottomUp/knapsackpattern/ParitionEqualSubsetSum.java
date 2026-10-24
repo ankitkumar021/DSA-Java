@@ -1,5 +1,5 @@
 package DSA.dp.bottomUp.knapsackpattern;
-
+//https://leetcode.com/problems/partition-equal-subset-sum/description/
 public class ParitionEqualSubsetSum {
     public static void main(String[] args) {
         int[] nums = {1, 5, 11, 5};//1,2,3,5->false
@@ -22,9 +22,10 @@ public class ParitionEqualSubsetSum {
         boolean[][] dp = new boolean[n+1][sum+1];
 
         // If sum is 0, then answer is true (empty subset)
-        for (int i = 0; i <= n; i++) {
+/*        for (int i = 0; i <= n; i++) {
             dp[i][0] = true;
-        }
+        }*/
+        dp[0][0] = true;
         for(int i=1;i<=n;i++){
             for(int j=1;j<=sum;j++){
 

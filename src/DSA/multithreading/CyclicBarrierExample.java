@@ -35,7 +35,7 @@ public class CyclicBarrierExample {
                 cyclicBarrier.await();
                 System.out.println(Thread.currentThread().getName() + " passed the barrier");
             } catch (InterruptedException | BrokenBarrierException e) {
-                Thread.currentThread().interrupt();
+                Thread.currentThread().interrupt();//stops the current execution of thread
                 e.printStackTrace();
             }
         }

@@ -10,7 +10,6 @@ public class SlidingWindowMaximum {
         int[] nums = {1, 3, -1, -3, 5, 3, 6, 7};
         int k = 3;
         System.out.println(Arrays.toString(maxInSlidingWindowK(nums, k)));
-
     }
 
     private static int[] maxInSlidingWindowK(int[] nums, int k) {
@@ -20,7 +19,8 @@ public class SlidingWindowMaximum {
         int[] maxArr = new int[nums.length - k + 1];
         int ptr = 0;
         while (j < nums.length) {
-            //removing all the element from queue which smaller than curr inserting element
+            //removing all the element from queue which smaller
+            // than curr inserting element
             while (!deque.isEmpty() && nums[j] > deque.peekLast()) {
                 deque.pollLast();
             }

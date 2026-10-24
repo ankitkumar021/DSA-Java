@@ -8,7 +8,26 @@ public class AnagramCheck {
       String s2 = "silent";
       System.out.println(isAnagram(s1,s2));
     }
-    private static boolean isAnagram(String s1, String s2) {
+    public static boolean isAnagram(String s, String t) {
+        if(s.length() != t.length()) return false;
+
+        int[] fre = new int[26];
+
+        for(int i=0;i<s.length();i++){
+            fre[s.charAt(i) - 'a']++;
+        }
+        for(int j=0;j<t.length();j++){
+            fre[t.charAt(j) - 'a']--;
+        }
+
+        for(int count : fre){//if all fre count != 0 return false
+            if(count != 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+/*    private static boolean isAnagram(String s1, String s2) {
         if(s1.length()!=s2.length()) return false;
         HashMap<Character,Integer> charCountMap = new HashMap<>();
 
@@ -26,5 +45,5 @@ public class AnagramCheck {
             }
         }
         return true;
-    }
+    }*/
 }

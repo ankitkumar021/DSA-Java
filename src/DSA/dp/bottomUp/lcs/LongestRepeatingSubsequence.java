@@ -20,9 +20,9 @@ public class LongestRepeatingSubsequence {
             for(int j=1;j<=n;j++){
 
                 //only diff from LCS is (i!=j)-> i and j should not be equal
+                //because if it is equal it basically taking same character twice
                 if (s.charAt(i - 1) == s1.charAt(j - 1) && i!=j) {
                     dp[i][j] = 1+ dp[i-1][j-1];//take it
-
                 }
                 else{
                     dp[i][j] = Math.max(dp[i-1][j],dp[i][j-1]);

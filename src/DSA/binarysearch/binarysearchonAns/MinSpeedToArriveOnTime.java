@@ -6,8 +6,12 @@ public class MinSpeedToArriveOnTime {
         int hour  = 6;
 /*        Explanation: At speed 1:
         - The first train ride takes 1/1 = 1 hour.
-                - Since we are already at an integer hour, we depart immediately at the 1 hour mark. The second train takes 3/1 = 3 hours.
-                - Since we are already at an integer hour, we depart immediately at the 4 hour mark. The third train takes 2/1 = 2 hours.
+                - Since we are already at an integer hour,
+                    we depart immediately at the 1 hour mark.
+                    The second train takes 3/1 = 3 hours.
+                - Since we are already at an integer hour,
+                    we depart immediately at the 4 hour mark.
+                    The third train takes 2/1 = 2 hours.
                 - You will arrive at exactly the 6 hour mark.*/
         System.out.println(minSpeedOnTime(dist,hour));
     }

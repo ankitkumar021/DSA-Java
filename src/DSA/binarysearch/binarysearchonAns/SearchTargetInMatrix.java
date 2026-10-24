@@ -9,9 +9,7 @@ public class SearchTargetInMatrix {
         };
         int target = 3;
         System.out.println(searchMatrix(matrix, target));
-
     }
-
     public static boolean searchMatrix(int[][] matrix, int target) {
         //since m*n matrix
         int row = matrix.length;
@@ -21,6 +19,7 @@ public class SearchTargetInMatrix {
         int e = row - 1;
         int targetRow = -1;
 
+        //this while loop is to find the row where target can be found
         while (s <= e) {
             int m = s + (e - s) / 2;
             //first if condition checks if there is target in the same row,
@@ -42,6 +41,8 @@ public class SearchTargetInMatrix {
 
         int left = 0;
         int right = col - 1;
+
+        //this while is to find the target
         while (left <= right) {
             int mid = left + (right - left) / 2;
             if (matrix[targetRow][mid] == target) {

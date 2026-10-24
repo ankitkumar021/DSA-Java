@@ -4,7 +4,7 @@ import java.util.HashMap;
 
 public class TwoSumPair {
     public static void main(String[] args) {
-        int[] arr ={5,1,-7,1};
+        int[] arr = {5,1,-7,1};
         int target = 6;
         System.out.println(totalPair(arr,target));
     }
