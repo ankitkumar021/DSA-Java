@@ -1,0 +1,91 @@
+
+
+1:What is Containerization and are you familiar with Docker
+2:what are the AWS services you are aware of ?AWS which features are you using
+3:What is the diff between EC2 and Lambda service and how you have used in your
+    application ?
+4:How to check logs in EKS? What you will do if instance restarted and
+     logs are gone?
+5:What's the need of using Docker? Why aren't we just creating a jar file and
+    deploying it on AWS?
+6:AWS -> Eks, docker, keystore, lambda functions, sqs
+7:Configuring deployment process in eks. Configurations and files needed to add
+What is IAM in AWS
+How the database credentials are stored in AWS Secrets Manager
+in depth question from aws storage like s3 backup mechanism, ebs and efs.
+
+
+
+
+
+
+1:how you are are doing performance monitoring in your application ?
+
+2:how to track issues in Splunk ?
+3:How is your build process - Manual or automatic
+4:How you monitoring logs in your application
+5:jenkins stages used in your project
+6:How you testing your application
+7:logging mechanism how it is implemented in your project,
+    visualization tools used for logging and related questions
+8:How do you troubleshoot any issue? if it is in prod how do you approach?
+9:have you used any microservice design patterns? explained saga and strangler
+10:when user enters wrong otp, in a payment related transaction how do you handle
+    in backend rest api
+11:When you have huge data to read from database and you need to write to any file,
+ how would you do it efficiently which approach do you follow.
+-> Answered as batch processing and pagination for reading and
+     streaming for writing data into file.
+12:Given list of objects invoice,
+  	    how do you filter invoice with values greater than 5000 in separate list
+  	    and < 3000 in separate list
+13:OAuth concepts
+14:How Authentication and Authorization was being handled for your BackEnd APIs
+         in your previous projects.
+15:How jenkin pipeline works and its stages?
+16:What performance monitoring tools were you using to check your application
+         performance.
+17:Are your aware of Jenkins or AWS CodePipeline? What are these? How have you
+        set them up previously.
+18:What will be your debugging approach if some service of yours is not able to
+       connect to your AWS Aurora DB.
+19:Explain how were you handling API Security.
+
+21:Can Kubernetes be used without docker?
+Authentication using spring boot - annotations, configuration
+
+ 10.what is spring security - JWT
+ 11.How a sensitive data from server side is stored
+ what is lazy loading
+ In production if JWT fails how you analyze
+ Kubernetes architecture
+ Challenges faced while working with microservices
+ changes in spring boot 3 from version 2
+ 20. How do you ensure your application is highly available and scalable to support,
+     say, one lakh users?
+ 13.What will you do if the database connection fails?
+     How do you troubleshoot and fix it?
+ 15. What happens when I push code to my Git repository? How does it trigger
+     the CI/CD pipeline?
+ 16. What exactly does a CI/CD pipeline do?
+ 7. What does the build step do in a CI/CD pipeline?
+ 18. What exactly does SonarQube do in a project?
+ 19. How do you Dockerize a Spring Boot application that generates a JAR file?
+ if one thread In a executor thread pool has a problem and it’s performing
+ some async task how will it be handled
+
+
+
+
+ 6. Configuration and uses of redis cache. Explain @cachePut,
+    @cachable, and @EnableCaching uses.
+ 40.   Diff between redis cache and in memory cache, which is fast .
+         What should be preferred.
+
+ 25. What if partition goes down, do we lose the message? How is this type of issue
+     handled?
+ 26. is it possible to publish event to Kafka directly from DB ,
+     suppose if status in db for some entries changed to success or failed,
+     can we trigger any event directly?
+ 27. How do you handle failures in Kafka? If a message throws an error or exception,
+     how it is handled?

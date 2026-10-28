@@ -1,0 +1,285 @@
+
+Hashmap:
+1:how to calculate the buket index
+    int hash = key.hashCode(); // Or a more refined hash function The hashCode()
+               method in Java is a crucial method defined in the Object class,
+               and it returns an integer hash code representing an object's value
+    int bucketIndex = hash & (n - 1);
+
+	hash: The hash code of the key.
+	n: The current capacity of the hash map's internal array (number of buckets).
+	    This is usually a power of two.
+	& (n - 1): This bitwise AND operation masks the hash code to ensure the resulting
+	            index falls within the valid range of 0 to n-1.
+
+	This process ensures that each key is mapped to a specific bucket within
+	the hash map's array structure,
+	allowing for efficient storage and retrieval of key-value pairs.
+	When multiple keys map to the same bucket (a hash collision),
+	hash maps typically employ collision resolution strategies like chaining
+	(using linked lists or trees within each bucket) or open addressing.
+
+1:how to put  internally in the hashmap
+follow up question:let say put same key with different value what happens
+example: at index 1 there is already an entry: <test,1>
+		now you want to add the another entry with :<test,2>
+		what happens to the hashmap?
+ans: the old entry value is updated by the new value.
+	(because the second time when you insert the entry using @override equals
+	and hashcode method
+	 it checks the hashcode(generally it remain the same for the same key while
+	 key value is overridden by the new value.)
+
+2:get entry works internally in the hashmap
+The get method in a HashMap works internally by following a series of steps to
+efficiently retrieve the value associated with a given key:
+Compute Hash Code: When get(key) is called, the hashCode() method of the provided
+key object is invoked.
+This generates an integer hash code for the key.
+
+Calculate Index: The hash code is then used to calculate the index within the
+                 internal array (often called a "bucket array" or "table")
+where the key-value pair might be stored. This calculation typically involves
+                 a bitwise AND operation with (capacity - 1)
+to ensure the index falls within the array's bounds.
+
+Navigate to Bucket: The HashMap then accesses the element at the calculated index
+                    in its internal array.
+
+Handle Collisions (Traverse Linked List/Tree):
+No Collision: If the bucket at the calculated index contains only one entry,
+nd its key matches the search key (determined by the equals() method),
+the associated value is returned.
+
+Collision (Linked List): If multiple entries are present at that index
+                            (due to hash collisions),
+they are typically stored in a linked list. The get method traverses this linked list,
+comparing the key of each Entry object with the search key using the equals() method.
+If a match is found, the corresponding value is returned.
+Collision (Tree): In Java 8 and later, if a linked list in a bucket becomes too
+long(exceeds a certain threshold),
+it can be converted into a balanced tree (specifically, a TreeNode structure).
+In this case, the get method traverses the tree to find the matching key.
+
+Return Value or Null: If a matching key is found during the traversal,
+its associated value is returned.
+ If the traversal completes without finding a match, null is returned,
+ indicating that the key does not exist in the HashMap.
+
+
+How concurrentHashMap works internally:(in terms of read and write)
+
+Multithreading:
+how thread communicate each other between each others
+
+
+question:how to make post request idempotent:
+
+What is idempotent?
+
+An operation is idempotent if it will produce the same results when executed over
+and over again.
+
+var a = 10;
+a++;
+The first example is idempotent: no matter how many times we execute this statement,
+a will always be 10.
+The second example is not idempotent.Executing this n times will result in a
+different outcome.
+
+List of idempotent Rest methods:
+
+HTTP Method
+OPTIONS
+GET
+HEAD
+PUT
+DELETE
+
+List of non-idempotent methods:
+
+HTTP Method
+POST
+PATCH
+
+Generate a Unique Idempotency Key:
+The client generates a unique identifier for each distinct POST request.
+This is often a Universally Unique Identifier (UUID)
+or a hash of the request payload combined with other relevant information
+(like user ID, API path).
+This key is typically sent in a custom HTTP header,
+such as Idempotency-Key or X-Request-ID.
+
+Server-Side Tracking and Processing:
+Check for Existing Key: When the server receives a POST request with an
+idempotency key,
+ it first checks a persistent store (e.g., a database, Redis,
+ or other distributed cache) to see if this key has already been processed.
+Process New Requests: If the key is not found, the server proceeds with processing
+the request
+ (e.g., creating a new resource, performing a transaction).
+Store Key and Response: After successful processing, the server stores the
+idempotency key along
+with the response generated for that request in the persistent store.
+This entry should have an appropriate Time-To-Live (TTL) or expiration policy.
+Return Cached Response for Duplicates: If the key is found,
+it means the request has been processed before.
+The server then retrieves the previously stored response associated with that key
+and
+returns it to the client without re-processing the request.
+This ensures that even if the client retries the request, the outcome remains the same.
+
+Consider a payment processing API:
+A client initiates a payment by sending a POST request with an Idempotency-Key
+(e.g., a UUID) in the header.
+The server receives the request. It checks its payment transaction log or
+cache for the Idempotency-Key.
+If the key is not found, the server processes the payment, records the transaction,
+and stores the Idempotency-Key along with the payment confirmation response.
+If the client retries the request (due to a network issue, for example)
+with the same Idempotency-Key, the server finds the key in its store.
+Instead of processing the payment again, the server retrieves the stored payment
+confirmation response and returns it,
+ensuring no duplicate payment occurs.
+
+Important Considerations:
+Key Uniqueness: Ensure the idempotency key is truly unique for each distinct operation.
+Storage Mechanism: Choose a reliable and performant storage mechanism for
+idempotency keys and responses, especially in distributed systems.
+Expiration: Implement a strategy to expire old idempotency keys to manage
+storage space.
+Error Handling: Define how the API should respond to different scenarios,
+such as when the idempotency key is invalid or
+when a conflict occurs during processing.
+27
+
+
+constructor injection vs setter injection
+Use constructor injection for mandatory dependencies to ensure the object is
+always in a valid state upon creation and promotes immutability.
+Use setter injection for optional dependencies or
+when dependencies might change after the object is created
+
+
+traceId:
+The traceId is the same across all microservices for a single request,
+while each microservice (or operation within a microservice) typically
+has its own unique spanId. Here's the breakdown:
+
+
+In a distributed system, a single user request often flows through multiple services,
+databases, and message queues. This makes it very hard to track what happened,
+where, or why something failed. That’s exactly why a traceId is required.
+Here’s a detailed breakdown:
+
+1. Uniquely Identify Requests Across Services
+
+Each incoming request is assigned a traceId, which is passed to all downstream services.
+
+This lets you correlate logs, metrics, and events across services for a single request.
+
+Without traceId, logs from Service A, Service B, and Service C would look unrelated.
+
+TraceId: 4bf92f3577b34da6a3ce929d0e0e4736
+Service A log: "Received order request"
+Service B log: "Validated payment"
+Service C log: "Shipped item"
+All these logs can be linked using the same traceId.
+
+2. Simplifies Debugging and Root Cause Analysis
+
+Distributed systems can fail at any service along the chain.
+
+With traceId, you can track the full request path, even across async calls
+(like Kafka or RabbitMQ).
+
+You can see which service caused an error and how it propagated.
+
+3. Measures Performance and Latency
+
+Each span within a trace represents a unit of work.
+
+TraceId + spanId allow you to measure time spent in each service or operation.
+
+Helps identify bottlenecks or slow services in the system.
+
+TraceId: 4bf92f3577b34da6a3ce929d0e0e4736
+Span 1: API Gateway → 50ms
+Span 2: Service A → 120ms
+Span 3: Service B → 30ms
+
+| Purpose                | Why TraceId is Needed                              |
+| ---------------------- | -------------------------------------------------- |
+| Request correlation    | Link logs across services for a single request     |
+| Debugging & root cause | Track where errors happen in a multi-service chain |
+| Performance monitoring | Measure latency of each service or operation       |
+| Observability          | Visualize end-to-end request flow                  |
+| Async operations       | Track events/messages triggered asynchronously     |
+
+
+Micrometer:
+1. What is Micrometer?
+
+Micrometer is a metrics instrumentation library for JVM-based applications.
+
+It allows you to collect application metrics such as:
+
+Counters (number of requests, errors)
+
+Gauges (current memory usage, queue size)
+
+Timers (request latency)
+
+Distribution summaries (payload sizes)
+
+It is vendor-neutral, meaning it can export metrics to multiple monitoring systems
+like Prometheus, Graphite, Datadog, New Relic, or CloudWatch.)
+
+Often called the “application metrics facade” for Java.
+
+Key Point:
+
+Micrometer measures application performance and behavior,
+while traceId is for tracking a single request across distributed services.
+They complement each other but serve different purposes.
+
+
+
+
+
+
+
+3. Difference Between Micrometer and TraceId
+| Feature       | Micrometer                                | TraceId                                                  |
+| ------------- | ----------------------------------------- | -------------------------------------------------------- |
+| Purpose       | Collect **application metrics**           | Track **single request across services**                 |
+| Granularity   | Aggregated stats (counts, timers, gauges) | Individual request or transaction                        |
+| Scope         | Application-wide, system-wide metrics     | Request-level, distributed across services               |
+| Visualization | Prometheus, Grafana, CloudWatch, etc.     | Distributed tracing tools: Jaeger, Zipkin, OpenTelemetry |
+| Type of Info  | Performance, resource usage, errors       | End-to-end flow of request for debugging                 |
+| Lifecycle     | Continuous, long-lived                    | Starts with request, ends when request completes         |
+
+
+Key Insight:
+
+Micrometer = Metrics & monitoring.
+
+TraceId = Distributed tracing & request correlation.
+
+They complement each other: traceId helps debug a specific request, Micrometer shows system health and trends over time.
+| Feature                 | **Mock**                                                                 | **Spy**                                                                                |
+| ----------------------- | ------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| **Behavior**            | Fake object → *methods do nothing unless stubbed*                        | Wraps a real object → *real methods are called unless stubbed*                         |
+| **Use Case**            | When you want to simulate behavior without using the real implementation | When you want to test real logic but monitor interactions or override part of behavior |
+| **Default Method Call** | Does **NOT** call real methods unless `thenCallRealMethod()` is used     | Calls **real methods** unless explicitly stubbed                                       |
+| **Typical Purpose**     | Isolate the unit under test by controlling all dependencies              | Partial mocking: verify interactions while keeping real logic                          |
+| **Risk**                | Too many mocks → brittle tests unrelated to real behavior                | If real method has side effects, spy may cause unintended actions                      |
+| **Example**             | Mock repository or external service                                      | Spy a service to test part of business logic while controlling a few calls             |
+
+
+| Mock                     | Spy                         |
+| ------------------------ | --------------------------- |
+| Fake object              | Real object with monitoring |
+| No real methods called   | Real methods called         |
+| Used for isolation       | Used for partial mocking    |
+| Behavior fully simulated | Real behavior + overrides   |

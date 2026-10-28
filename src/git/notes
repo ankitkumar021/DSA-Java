@@ -1,0 +1,231 @@
+
+1:git init->The git init command is used to create a new,
+    empty Git repository in the current or a specified directory.
+
+Creates a hidden .git subdirectory: This folder is the core of your repository.
+It contains all the necessary metadata, objects, references, and
+configuration files that Git uses to track changes, manage history,
+and handle branches.
+
+Initializes the repository structure: Inside the .git folder,
+it sets up basic subdirectories (like objects, refs/heads, refs/tags, and hooks)
+and files (like HEAD and config).
+
+Sets up an initial branch: It configures a default branch, often named main or master.
+Does not track files automatically: The command only creates the potential for
+version control;
+it doesn't start tracking your existing project files right away.
+You must use git add followed by git commit to start recording revisions
+
+2:git add.->Run the git add . command to mark the files to be version controlled.
+The names of the files to be added to the Git repository come after the git add command.
+The . means adding all files in the current directory.
+
+3:git status ->to preview the commit.
+
+4:git commit -m "First commit."->command to commit the marked files into the repository.
+This step saves the changes as a snapshot.
+
+
+what is the difference between git add and commit:
+
+git add and git commit are two separate,
+sequential steps in the Git workflow that work together to save changes.
+
+->git add is used to add modified or new files from your working directory
+to the staging area (also known as the "index").
+This is an intermediate area that lets you select exactly which changes
+you want to include in the next commit.
+
+->git commit takes everything that is currently in the staging area and
+permanently saves a snapshot of that content
+to your local repository's history. This snapshot is assigned a unique identifier
+(a SHA-1 hash) and is a point you
+can revert back to later if needed.
+
+Summary of Differences
+Feature 	git add	git commit
+Purpose	Stages changes for the next commit.
+    Records staged changes as a permanent snapshot in the local repository.
+Location affected
+    Moves changes from the working directory to the staging area.
+    Moves changes from the staging area to the local repository.
+Permanence	Changes are not yet a permanent part of the project history.
+    Changes become a part of the project's permanent history (locally).
+Workflow Order	Must be used before git commit for new or modified files.
+    Occurs after git add to finalize the changes into a checkpoint.
+
+
+git add vs git commit vs git push
+The git add command moves changes from your working directory (the place where you edit files)into this staging area
+(an index, or record of what’s about to be committed).
+example:git add app.js
+
+
+Then git commit converts whatever is staged into a new snapshot.
+When you look at your repository’s commit history later using git log,
+you’ll see these messages along with commit hashes and authorship details.
+
+Finally, git push transfers those snapshots from your local repository to a
+remote repository, making them visible to your team.
+
+How git push shares changes with others
+Up until now, all changes you’ve made have been local.
+Even if you create multiple commits, those commits live only on your machine,
+inside your local Git repository. To share these changes with others, you use git push.
+git push sends your local commits to a remote repository
+(often hosted on platforms like GitHub, GitLab, or Bitbucket).
+ A typical command is: git push origin main
+
+
+Here, origin is the default name for the remote repository you cloned from, and
+main is the branch you’re pushing to.
+When you run this command, Git compares your local branch’s commits to the
+remote’s commits and
+uploads any commits that are missing on the remote side.
+
+Under the hood, git push communicates with the remote repository through
+the Git protocol, SSH, or HTTPS.
+ It transfers your commits, along with any objects
+(such as file changes and directory snapshots) that the remote repository
+doesn’t have yet.
+ Once complete, your new commits appear on the remote repository’s history.
+ This means your teammates can now git pull those changes into their own local
+ environments and continue from where you left off.
+
+
+git status :The git status command is a fundamental Git tool that displays the
+current state of your working directory and staging area.
+ It helps you monitor changes and decide which files should be part of the next commit.
+
+ Scope: Inspects the working directory and the staging area (index).
+Purpose: Shows which files have been:
+Modified but not yet staged.
+Staged (added to the staging area) and are ready for the next commit.
+Untracked (new files that Git is not yet monitoring).
+Deleted.
+
+Output: The output is a real-time "health check" that often includes helpful
+hints on what commands to use next, like git add or git restore.
+History: It provides no information about the project's commit history.
+
+
+git log:
+git log is used for reviewing the project's history and answers the question,
+"What changes have already been saved to the repository?"
+
+Scope: Operates only on the committed history of the repository.
+Purpose: Displays committed snapshots, allowing you to list, filter,
+and search for specific past changes.
+Output: Each entry typically includes:
+A unique commit hash (SHA-1 checksum).
+The author's name and email.
+The date and time of the commit.
+The commit message.
+
+
+Question 1: what is the difference between git status and git log
+ The core difference is that git status shows the current state of your local
+ working directory and staging area,
+ while git log shows the history of committed changes
+
+
+Question 2:The main difference is that git push safely adds local commits
+            to the remote repository,
+ while git push --force overwrites the remote branch's history with your local history,
+ potentially causing data loss for other team members
+
+ high,departiwse
+ max,avg,min
+
+
+git pull(git fetch + git merge )->
+The primary command for updating your local repository with changes from
+    a remote repository is git pull.
+What git pull Does
+git pull is a shortcut command that performs two operations in one step:
+git fetch: This downloads new commits and data from the remote repository
+            to your local Git repository but does not apply them to your working files.
+git merge: This automatically integrates the fetched changes into your
+            current working branch and working directory files.
+
+
+git rebase
+git rebase moves or rewrites commits so that your branch appears as if
+    it was created from a new base.
+It gives you a clean, linear commit history.
+
+🔵 1. Why Rebase? (Visual Explanation)
+
+Suppose your repo looks like this:
+A -- B -- C   (main)
+       \
+        D -- E (feature/login)
+While you worked on commits D and E, new commit C appeared on main.
+
+❓ What you want:
+
+You want your feature to sit on top of the updated main.
+
+🔵 2. Rebase vs Merge (Visual)
+Option 1: git merge main
+
+Keeps history but adds a merge commit.
+A -- B -- C -------- M      (feature)
+       \           /
+        D -- E ---        (merge commit M)
+History becomes branched and sometimes messy.
+
+Option 2: git rebase main
+
+Rewrites your feature onto the updated main:
+A -- B -- C -- D' -- E'   (feature)
+Cleaner. Looks like you developed the feature after commit C.
+
+Meaning:
+
+feature/login was created from commit B
+
+main has moved ahead to commit C
+
+Your branch has commits D and E
+
+You want to rebase feature/login onto main so that D and E sit after C.
+
+⭐ Goal After Rebase
+A -- B -- C -- D' -- E'   (feature/login)
+(D and E become new commits D' and E' rewritten on top of C.)
+
+🧭 Step-by-Step Git Commands
+1️⃣ Checkout your feature branch
+
+You must be on the branch you want to rebase.
+git checkout feature/login
+
+2️⃣ Rebase onto main
+
+This moves your branch commits (D, E) onto the latest main (C):
+git rebase main
+What Git does internally:
+
+Finds the fork point (commit B)
+
+Takes commits D and E aside
+
+Resets your branch to look like main (ending at C)
+
+Replays D and E onto C as NEW commits (D', E')
+
+working directory(git add)->staging directory(git commit)->
+                                         local repository(git push)->remote directory.
+
+pull(fetch+merge)->
+fetch(download from remote to local directory but did not merge to working directory)
+        +merge(integrate the changes to the working directory).
+
+
+merge ->suppose there is new commit on the feature and main branch comes at the
+            same so merge will merge both of them by preserve the history.
+
+while rebase -> in rebase feature commits will append after the latest main by
+        deleting the history (making cleaner history).

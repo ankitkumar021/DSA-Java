@@ -1,0 +1,539 @@
+
+public cloud vs private cloud
+->benefits
+	1:variable expense(pay only what you use) instead capital expense+you have to
+	    manage by yourself(like walmart has its own cloud {WCNP})
+	2:auto/manual scaling when traffic increase
+
+
+Host servers:
+	->where you application aws service runs.
+	which is one of many in an AWS data center and than many instances will
+	run virtual machines on top of that host server
+
+types of cloud
+1:IAAS->infrastructure as a service->(managed virtual machine) running
+        virtual server like window or linux.
+	What it provides:
+	Virtual servers, storage, networking.
+	Examples:AWS EC2
+
+
+2:PAAS->Platform as a service ->provide runtime platform to run your code without
+        managing servers.
+	    Examples:AWS Elastic Beanstalk,Heroku
+
+3:SAAS->Software as a service ->everything is managed for you not by you which
+        can be accessed via internet.
+	    Examples:(like salesforce,Email)
+
+what is region(us-east-1):
+	->each region is divided into multiple availability zone
+		example:Availability Zone A (us-east-1a),Availability Zone B (us-east-1b),
+		        Availability Zone C (us-east-1c).
+	->each availability zones has 1 or more datacenter(EC2 instance).
+
+how aws managed these service
+1:aws management console
+2:command line
+
+availability zone:
+	->An Availability Zone (AZ) in AWS is a physically separate data center
+	  (or group of data centers) within an AWS Region,
+	    designed to provide high availability and fault tolerance.
+	Key Points About Availability Zones:
+		1.Physical Isolation
+				Each AZ is independent
+				Failure in one AZ does not affect others
+		2. High Availability
+				You can run applications across multiple AZs
+				If one AZ fails, traffic is routed to another(through ELB,route 53)
+				in Multi-AZ not in Single-AZ.
+		3. Low Latency
+				AZs in the same region are connected by fast private fiber networks
+		4. Designed for Fault Tolerance
+				Protects against:
+					Power failures
+					Network outages
+					Natural disasters (within a region)
+
+-> subnet:
+	subnet is nothing but a range of ip address within your virtual private cloud(vpc).
+	Think of vpc as your own isolated network within aws and subnets divide that
+	network into smaller segments.
+->public subnet:
+	it has route to internet usually via Internet gateway(public ones connect out).
+	resources in a public subnet (like EC2 instances) can directly sends and
+	receive traffic from internet,usually with public ip.
+
+->private subnet:
+	it does not has route to internet.(private ones stays internal)
+	resource in the private does not have public ip address.
+	if they need to access the internet(like downloading updates),
+	they typically use a NAT gateway or NAT instance in a public subnet.
+	it allow outbound traffic(data leaving your resource done through NAT gateway)
+	    while still blocked inbound traffic(data coming from outside into your resource).
+
+Amazon cloud front:
+is a CDN which store images and videos of a global users in regional edge cache.
+it improves the performance of a application by speed up load times and
+reducing the latency .
+it also integrate with s3 and elb for seamless content delivery experience.
+let say if you want to movies on netflix you do need to present in USA.
+you can easily view from India also.
+
+aws pricing fundamental:
+
+1:compute  : amount of resources such as cpu ,ram and duration
+
+2:storage : quantity of data stored /allocated
+
+3:outbound data transfer->data that is transferred out from all services
+
+pay as you go:
+->easily adapted to changing the business needs
+->improve responsiveness to change
+->adapt based on needs ,not forecast
+example-> let says you are running 10 instance
+and later you do not want 5 instance so now you can only pays for 5 services.
+
+save when you reserve:
+->invest in reserved capacity (egs: RDS AND EC2).let say for some years.
+->saves up to 75% as compared to on-premise (pay-as-you-go).
+
+6 advantages of AWS cloud computing:
+
+1:trade capital
+2:benefits from massive economies of scale
+3:stop guessing capacity(what really needed)
+4:increase speed and agility
+speed=(deploy resource easily and quickly)
+agility-> react quickly to change;speed to market
+5:stop spending money running and maintaining data centers(data center management)
+6:go global in minutes(deploy your application any where in the world)
+
+
+IAM->identity and access management is a key aws service that helps you
+     secure control who can access your aws resource
+IAM component-->
+    1:Users->is an individual identity with credentials like(password or access keys)
+      that represents a person or an app.
+
+    2:user groups->is a collection of users ,instead of assigning policies to each user
+      individually you can create a group and assign permission to it.
+
+where we can add the users and what policies(means permission) we can assign them
+meaning where apis on aws they can access
+so policies are attached to the user groups(based upon common job role).
+
+    3:policies->is a set of rule defined in the json, that defines what actions
+      are allowed or denied on specific resource.
+    you can attach these policies to users,groups,or roles.
+
+    4:roles->like a user ,but it's meant for applications or services.
+    It doesn't have long-term credentials.Instead,it grants temporary permissions.
+core components:
+1:trust
+2:permissions
+
+
+
+steps to create :
+first create user group->add the policies (permission)->add user to it.
+
+//after creating IAM account now you can login with your IAM account
+not the root account.
+
+IAM identity center:
+create aws organisation
+click on iam identity center->click on enable
+
+scaling up(vertically):
+increase the ec2 instance types from let say t2(1cpu,1gb ram) TO C5(4cpus,8GM RAM)
+
+scaling out(horizontly)
+increase the number of t2 instance
+
+high availability in aws:
+is the measurement of :
+the amount of time data is available to access
+expressed as a percentage of time per years
+eg:99.99
+
+->designed for no single point of failure(acheived through data redundancy)
+->synchronous & asynchronous replication
+->lower cost as compared to fault tolerence(ft)
+->service that creates HA:
+	Elastic Load Balancing
+	EC2 auto scaling
+	amazon route 53(dns service
+
+
+
+vs fault tolerenc:
+->no service interruption
+->no downtime
+->synchronous replication
+->higher costing
+->server are:
+	fault tolerenc nic
+	disk mirroring(RAID-1)
+	synchronous db replication
+	redundant power
+
+
+
+durability:
+is the protection against
+->data loss
+->data corruption
+->s3 with 11 9's3
+(99.999999999)
+if you store 10 million object in s3,then you can expect to lose 1 in every 10000 years.
+
+
+Types of ec2:
+1:general purpose
+2:compute optimised
+3:memory optimised
+4:accelerated computing
+5:storage optimised
+
+EC2 instance family and types:
+m5.large
+m->is the family name
+5->generation number
+large-> is the size of the instance
+
+->amazon ec2 is connected through a network called elastic network interface(ENIS)
+
+amazon has elastic block store(EBS volume):-> for persistence storage
+                                            ->EBS is attached directly to EC2 instance
+	->they attached over the network
+	->EBS volume is exit within an availability zone
+	->the volume is automatically within the availability zone(AZ)
+	->gp3(general purpose ssd->use case :most workload ,including databases,
+	    dev and test environments),gp2,
+	ios2(provisioned iops ssd:high performance databases,critical applications),ios1,
+	st1(throughput optimised hdd:big data ,streaming,log processing)
+
+instance store->these volume are are physically attached to the host server
+                and offer high performance
+				->vvvi:they are not persistent (they are ephemeral in nature)
+
+
+
+Launching an EC2 instance:
+
+EC2 Instance(define hardware profile and cost ->
+	select instance types->
+		->select amazon machine image(AMI){LINUX,WINDOW},
+		it defines the configuration of instance->actual data is saved in (EBS snapshot)
+		{backup of EC2 instance}
+
+
+
+How to connect from outside world:
+->There are multiple way (EC2 instance connect) but the best ways is through
+  SSH client(key-pair).
+
+steps :first create an ip address
+
+Q:how to access amazon ec2
+1:with access key:
+create an access key and secret access key
+go to aws cli
+command:
+aws configure
+it will ask for  access key , secret access key and default region
+
+Q:how to delete the access key:
+you have to deactive then delete the access key
+
+->the access key is associated with IAM account
+->we attach the policy
+->the access key will use the permission assigned to the IAM users
+
+the disadvantage with access key
+->the access is the long term credentials, so there is chance of
+  password compromise(as they are stored in plain text on the instances)
+
+2:with IAM roles with EC2
+->we create IAM roles(trust policy defines who can access )
+  and we can attach policy with role and later we add the users
+->the role is assumed by the EC2 instance and access s3 bucket.
+
+how IAM role is secure
+->it uses amazon sts(security token service)
+
+advantage:
+there is no credentials stored in the instance(no security  exposer)
+
+Autoscaling in AWS:
+	Amazon EC2 autoscaling
+		->based on metric like cpu utilization and memory utilization
+
+	->automatically launches and terminates instance.
+	->maintain availability and scale capacity.
+	->it works with EC2,ECS,EKS
+
+Integrate with many AWS services,including:
+	cloudwatch for monitoring and scaling
+	elastic load balancing for distributing connections
+	Amazon VPC for deploying instances across AZs.
+
+first create the auto scaling group where the number of instances running let say we have
+we have auto scaling group and there is 2 AZ
+each AZ has 2 ec2 instance running and they are continuously sending the metrics
+to cloud watch and
+when cpu reaches let say 80% then amazon cloud watch notifies auto scaling group
+to add a new node in the auto scaling group
+
+Q:what is elasticity
+it means it scale out and and scale back when required.
+
+configuration of auto scaling group :
+1:it uses  launch template,it defines the setting we try use
+2:launch config
+3:click on auto scaling group
+	while configuring group size and scaling
+		group size:
+			under desired type
+			desired capacity :2(unit /instance)
+		scaling:
+		scaling limits
+			min desired capacity:2
+			max desired capacity:6
+
+
+health checks :
+	1:EC2=EC2 status checks
+	2:ELB=Uses the ELB health checks in addition to EC2 status checks
+
+health check grace period:
+->how long to wait before checking the health status of the instance
+
+Types of Auto scaling:
+	1:manual:make changes to ASG(auto scaling group) size manually
+	{manual adding the number of instance you want deployed in the auto scaling group}
+
+	2:dynamic:automatically scales based on demand.
+
+	3:predictive:uses machine learning to predict
+
+	4:scheduled:scales based on schedule.
+
+
+Amazon ELB(elastic load balancer):
+	so load balancer provides high availability and fault tolerance.
+	essentially there are single end point,so there are single DNS name or IP address
+	behind which a bunch of different instance sit.
+	so it's gonna automatically distribute connections to those EC2 instance.
+	Target include:
+		->amazon ec2 instance
+		->amazon ecs containers
+		->ip addresses
+		->lambda function
+		->other load balancers
+	we can chain them together also
+
+if any instance goes down than elb trigger the health check if down then it
+redistributed the request among rest up instance
+it also notified the auto scaling group that this instance is not responding to health,
+then auto scaning will terminate and replace them
+
+auto scanning is going to distribute the load across multiple availability zone and
+load balancers sitting in the front is then gonna
+distribute connection to all the instance
+
+types of load balancer :
+	1:application load balancer(it understand information in the http and https headers)
+		->operates at the request level
+		->routes based on the content of request (L7)
+		->supports path based routing ,host-based routing,query string parameter-based
+		    routing and source ip address -based routing
+		->supports instances,ip addresses,,lambda functions and containers as targets
+
+	use case:
+		->web application with L7 routing(http,https)
+		->microservice architecture(eg->docker,containers)
+		->lambda targets
+
+	2:network level load balancers:this is connection level(tcp,udp,tls,tcp_udp)
+	  load balancers
+		->operates on the connection level
+		->routes connection based on ip protocol data(L4)
+		->offers high ultra performance,low latency and TLS offloading at scale.
+		->we can have static ip/elastic ip(means you can hardcode them and white list
+		    them in firewalls)
+		->supports UDP and static ip addresses as targets
+
+	use case:
+		->Tcp and Udp based application
+		->require low latency
+		->static ip addresses
+		->vpc endpoint services
+
+	3:gateway load balancer:
+		->exchange traffic with appliances using GENEVE protocol on port 6081.
+		->operates on layers 3:listens to all packets on all ports.
+
+	use case:
+		->deploy,scale and manage 3rd party virtual network appliances
+		->centralised inspection and monitoring
+		->it is used for virtual networking appliances such as firewalls,
+		    intrusion detection systems,intrusion prevention systems.
+
+
+How to create load balancer
+	->create a target group
+	->target group is going to contain the instances
+	->choose target type
+	->choose rest
+
+	->now click on load balancer and choose which load balancer you want
+	let say application load balancer .click on create.
+	while creating 1 important thing is that you have to define the listeners and
+	routing
+	so when the request come to 80 it forward the request to target group
+	(where instance are attached)
+
+how to set up automatic load balancing
+	->go to ASG group-> load balancing ->edit->select target group
+	    ->go to target group and verifies
+	->go to load balancers and test it.
+	->copy the dns url and paste in web browser you can the instance running.
+
+How to create scaling policy
+	go to auto scaling group -> go to automatic scaling
+	    ->create dynamic scaling policies
+	->go to cloud watch ->check alarm -all alarm ->we can now see these 2 target
+	    tracking
+
+
+Amazon storage services:
+	3 different types of storage systems
+		1:block based
+		2:file based
+		3:object based
+
+amazon elastic block store
+amazon elastic file systems
+amazon simple storage service(s3)
+
+1:Block based Storage:
+	HDD(hard dish drive)
+		:also known as magnetic drives
+		:older technology
+		:much slower than SSD
+		:much cheaper than SSD
+		:the os read and write at the block level
+		:disk can be internal or network attached
+		ex:in window systems(OS) sees a volume .A volume can be partioned and formatted
+			let say in window we can see c drive(800GB) and d drive (200GB)
+	SSD(solid state drive
+		:uses flash memory(like cheap) not moving
+		:newer technology
+		:much faster than HDD
+		:more expensive than HDD
+		:better performance
+
+2:File based storage:
+		->a filesystem is mounted to OS using a network share,
+            any number of system is mounted to network and can read and write
+            to the network.
+		->in file based there is somewhere there is block based storage systems.
+		    this is attached with network attach server(NAS)
+		->there is network location (z)
+
+3:Object storage systems
+		->cannot be mounted but can be accessed programmatically using rest apis.
+		(which is advantage for programmer how can write the code for upload download
+		 and delete
+		->we can scale easily and having lower cost.
+		->here we have object storage containers
+		->here the object is any type file like videos,images,word documents,PDFS
+		->s3 is the object storage systems in the AWS.
+		->bucket
+		->here user upload objects using web browser or the apis
+		->the protocol which is used here is generally the HTTp protocol using
+		    rest apis
+
+Amazon EBS(elastic block store) and Instance stores
+	->block based storage system.
+	->EBS volumes is exit within an AZ
+	->the volume is attached over a network
+	->**your volume should be present in the same AZ
+	->**the volume is automatically replicated within the AZ.
+
+	How can we take backup:
+		->we can take snapshot(point in time)
+		->** snapshot is not storing in the availability zone(AZ)
+		    because it is exactly on Amazon s3 and is regional service.
+		->we can create  multiple snapshot and snapshot are incremental
+		    (snapshot1.0,1.1,1.2)
+
+	how can you take backup in different AZ.
+	->take snapshot from the  AZ than you can create an EBS Volume in another AZ
+	    from  snapshot
+	2nd way
+	->you can also create an AMI from snapshot.
+	    (a new instance can be created within the same region.
+
+Instance store volume:
+	->are ephemeral in nature(non persistent)
+	->instance store volumes are physically attached to the host and
+	    offer high performance.
+	->if power is off to the host server ,all the data is gone forever.
+	use case->temporary data which can be recreated or will come in near future.
+
+practical create an attach an EBS volume.
+	->go to elastic block store and create volume which types you want.
+	->you can attach this volume to any instance you want,simply go to that instance
+	    and this volume.one note here you cannot attached the volume
+	in different AGs.
+
+	how to create the snapshot:
+	->go to volume ->select the volume ->actions->create snapshot
+	->go to snapshot and verify it (note these snap are stored in s3 bucket)
+	->how to create the same snapshot in other AZ,
+		->lets create a volume from this snapshot using the actions menu and
+		    its gonna be
+			->now attach this volume
+
+Amazon machine Images(AMI) and the associated snapshot
+	->instance was launched from a custom AMI
+	->the AMI has been used to launch additional identical instances
+	->deregister after the use
+
+Amazon Elastic file system(EFS):
+	->is the shared file system.
+	->we can connect instances to EPS file systems from multiple availability zone(AZ).
+	    (connection protocol is NFS
+	->EFS is regional based.
+	->can only be used with linux not operating system.
+	->Data consistency:write operations for regional file systems are
+	    durably stored across availability zones.
+	->file locking:NFS client applications can use NFS v4 file locking for read
+	    and write operations on EFS files for data consistency.
+	->storage classes:there are 3 options
+		1:EFS Standard ->uses SSD for low latency performance.
+		2:EFS infrequent access (IA)->cost effective options.used when you don't need
+		    the data regularly.
+		3:EFS Archive->even cheaper for less active data.once or twice in a year.
+	->durability:all storage classes offer 11 9s of durability.
+	    like s3(very unlikely you gonna loose your data)
+
+	you can create EFS system in 1 region and replicate it to other region for
+	    disaster recovery also the replicas are only the read only.
+
+	EPS replication :data is replicate across regions for disaster recovery
+	    purposes with RPO /RTO in minutes
+	Automatic backup:EPS integrates with AWS backup for automatic file system backups.
+
+	performance options:there 2 options
+		1:provided throughput ->specify a level of throughput that the file system
+		    can drive independent of the file system size.
+		2:Bursting throughput-> throughput scales with the amount of storage
+		    and supports bursting to higher levels.
+

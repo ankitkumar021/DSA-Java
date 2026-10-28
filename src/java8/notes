@@ -1,0 +1,48 @@
+
+Java 8 important method to solve the problem
+
+//https://medium.com/@AlexanderObregon/javas-collectors-mapping-method-explained-661ce6ce5bd2
+1:Collector.mapping() ->transform elements during a multi-level reduction operation
+                            generally used with groupBy/partitioningBy.
+public static <T, U, A, R> Collector<T, ?, R> mapping(
+    Function<? super T, ? extends U> mapper,
+    Collector<? super U, A, R> downstream
+)
+mapper: A function that transforms elements of type T to type U.
+downstream: A collector to accumulate the transformed elements.
+
+it can integrate with groupBy and partitioningBy.
+
+example 1: If you only want a list of employee names (strings) per department rather
+than the full Employee objects, you cannot use .map() before groupingBy() because
+you would lose access to the department field needed for grouping.
+Collectors.mapping() solves this by allowing you to extract the name after or
+while grouping.
+
+example 2 :let say using groupBy you can group into let say depart,employee,but you
+want to perform operation on let say age so here you can use mapping which can
+transform employee type  to age type and let say you want to perform operation like
+sort the age and youngest employee so you can do it.
+you can also collect in list, set ...
+
+//https://www.linkedin.com/posts/pavanreddy1947_java-javastreams-java8-share-7457406198007607297--eNj/
+2:Collectors.collectingAndThen():first collect then transform
+  Collectors.collectingAndThen(
+   downstreamCollector,   // Step 1: Collect the data
+   finishingFunction          // Step 2: Transform the result
+  );
+
+lets you apply a final transformation after a collector completes —
+think of it as: Collect first → Then reshape the result.
+It work similar to mapping as it works with groupBy.
+
+Q: Can collectingAndThen() be replaced with map()?
+ 👉 No , they operate at different stages:
+  map() → transforms individual elements during the stream pipeline
+  collectingAndThen() → transforms the entire collected result as a whole
+
+Q: Where is collectingAndThen() most commonly used in real projects?
+   👉 Three most common patterns:
+    Returning immutable collections from service methods
+    Resolving Optional from maxBy / minBy inline
+    Formatting values inside groupingBy without extra post-processing

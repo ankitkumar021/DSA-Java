@@ -1,0 +1,174 @@
+
+q1:
+customer->customer_id,name,customer_place
+order->order_id,customer_id,order_date,item_name,order_amount
+
+print the customer name who has done the max total order value.
+
+ans:
+select customer_name
+from customer c
+join order o
+group by c.custome_id
+order by sum(o.order_amount) desc
+limit 1;
+
+q2:
+employee
+emp_id, empname, managerid
+
+1	e1	2
+2	e2	null
+
+Required Output:
+emp_id, empname, managername
+1	e1	e2
+2	e2	null
+
+ans: we use left join beacuse it will return manger who is null
+
+select e.emp_id,e.empname,m.manager_name as manager_name
+from employee e
+left join manager m
+on  m.employee_id=e.manager_id
+
+q3:solution to find the nth salary(How internally query works)
+
+ ans:
+ SELECT DISTINCT Salary FROM Employee e1
+ WHERE N>=(SELECT COUNT(DISTINCT salary)
+ FROM Employee e2 WHERE e1.salary<=e2.salary)
+ ORDER BY e1.salary DESC
+);
+
+q4:SQL Queries to find the count of employees from each department
+
+ans:
+select count(*) from employee
+group by department;
+
+q5:sql query to find highest salary of each department
+
+ans:
+select max(salary) from employee
+group by department
+
+q7:. Given table books and column words,
+Give the sql query to give the words and its counting greater than 3.
+
+ans:
+select words,count(*) as wordLength
+from books
+groupBy words
+having count(*) >3;
+
+
+
+q8:Employee: eid, ename, departmentId
+ Salary: eid, salaryAmt, month, year
+ Department: depid, depName
+ Find all the employee whose salary
+ is more than department avg salary.
+
+select * from employee e
+join department d
+on e.department_id = d.department_id
+join salary s
+on s.emp_id = e.emp_id
+where s.salary =
+(select avg(e2.salary) from employee e2
+join salary s2
+on e2.employee_id = s2.employee_id
+where e2.department_id = e.department_id
+
+
+
+
+q9:find youngest employee in table
+
+ans:the max number is the younger like people born in 2000 is younger than people
+born in 1900
+
+select * from employee
+order by dob desc
+limit 1;
+
+q10:
+count of all employees manager wise and updated query if count>10
+
+ans:
+select  manager_id, count(*) as employee_count from employee
+groupBy manager_id
+having count(*)>10;
+
+
+
+q11:
+Employee: empId, empName, deptId, salary
+Department: deptId, deptName
+    a. Fetch all employees who work for deptId = 4.
+    b. Fetch all employee data along with deptName for those who work for deptId = 4.
+    c. Fetch employees having the maximum salary in each respective department.
+    d. What are Outer Join and Right Join?
+
+a:
+select * from employee
+join department d
+on e.employee_id = d.employee_id
+where department_Id =4;
+
+b:
+select emp_id,emp_name,department_id,department_name from employee e1
+join  department d
+on e.department_id = d.employee_id
+where e.department_Id =4;
+
+c:
+select * from employee e
+where e.salary =
+(select max(e.salary) from employee
+where department_id = e.department_id)
+
+another way:
+select employee_id department_name from employee
+join department d
+
+
+
+-SQL Query
+table -> employee
+empid, deptid, salary
+
+table -> department
+deptid deptname
+Return deptname where avg salary is greater than 5000
+
+select d.deptname from department d
+join employee e
+on d.deptid = e.deptid
+group by d.deptname
+having avg(e.salary) > 5000
+
+
+
+
+---------------------------------------------------------------------->
+select distinct salary from employee e1
+where n>=(select count(distinct salary) from employee e2
+where e2.salary>=e1.salary)
+order by e1.salary desc
+
+what is completion service.
+CompletionService is an interface that decouples the submission of asynchronous tasks from the processing of their results.
+The concrete implementation, ExecutorCompletionService, uses an Executor to run tasks and places the results of completed tasks
+into an internal queue.
+
+Feature 	CompletableFuture	CompletionService
+Purpose	To build a fluid, reactive pipeline of dependent and independent asynchronous tasks and process their results and errors.
+	To process the results of a batch of submitted tasks as they complete, without needing to know which one will finish first.
+Model	Offers a functional, callback-based API for handling completion and chaining tasks non-blockingly.
+	Provides a queue-based model for retrieving completed tasks from a batch.
+Use Case	Ideal for complex, multi-stage asynchronous workflows where you want to declaratively define a sequence of operations.
+	Best for scenarios like parallelizing a task across multiple "worker" tasks and processing the results one by one as they finish.
+
+ant matchers-> filters
