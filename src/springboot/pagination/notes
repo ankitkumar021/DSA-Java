@@ -2,7 +2,7 @@ PAGINATION
 
 ->Pagination is used to fetch data in small chunks(100 pages:fetch 1 at a time instead all
     at a time)
-->it improves performance and reduces memory usage,especially for large datasets
+->it improves springboot.performance and reduces memory usage,especially for large datasets
 ->spring data jpa build in support for pageable and page
 
 Request Flow:client->GET /employees?page=0&size=5->controller->service->db

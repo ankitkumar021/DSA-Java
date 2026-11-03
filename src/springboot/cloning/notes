@@ -1,0 +1,207 @@
+
+
+When working with objects in Java, it’s often necessary to create copies of objects.
+However, simply copying the reference of an object can lead to
+unintended side effects. This is where the concepts of cloning, shallow copy,
+and deep copy become crucial. In this article, we’ll delve into these concepts
+with clear examples, ensuring even beginners can grasp them.
+
+Table of Contents:
+1. The Cloneable Interface
+2. Shallow Copy
+3. Deep Copy
+4. Examples
+
+The Cloneable Interface
+
+The Cloneable interface in Java is a marker interface.
+This means it doesn’t contain any methods but serves as a signal
+to the Java runtime that the class allows for field-for-field copying of instances.
+When a class implements Cloneable, it indicates that it supports the
+creation of a copy through the clone() method.
+
+Implementing Cloning
+
+To implement cloning:
+1. Implement the Cloneable interface in your class.
+2. Override the clone() method from the Object class.
+3. Call super.clone() inside the clone() method.
+
+Here’s a basic example to illustrate:
+
+class Person implements Cloneable {
+    String name;
+    int age;
+    Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+    @Override
+    public String toString() {
+        return "Person{name='" + name + "', age=" + age + "}";
+    }
+    public static void main(String[] args) {
+        try {
+            Person original = new Person("Alice", 30);
+            Person cloned = (Person) original.clone();
+
+            System.out.println("Original: " + original);
+            System.out.println("Cloned: " + cloned);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+Output:
+
+Original: Person{name='Alice', age=30}
+Cloned: Person{name='Alice', age=30}
+Shallow Copy
+A shallow copy of an object copies all the member fields,
+but it does not copy objects that the fields refer to.
+Instead, the references to these objects are copied,
+meaning both the original and the copied object refer to the same objects.
+
+In Java, the clone() method creates a shallow copy by default.
+
+Example of Shallow Copy
+
+Consider a Person class that has a reference to an Address class:
+
+class Address {
+    String city;
+    Address(String city) {
+        this.city = city;
+    }
+}
+class Person implements Cloneable {
+    String name;
+    int age;
+    Address address;
+    Person(String name, int age, Address address) {
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+    @Override
+    public String toString() {
+        return "Person{name='" + name + "', age=" + age + ", address=" + address.city + "}";
+    }
+    public static void main(String[] args) {
+        try {
+            Address address = new Address("New York");
+            Person original = new Person("Alice", 30, address);
+            Person cloned = (Person) original.clone();
+            System.out.println("Original: " + original);
+            System.out.println("Cloned: " + cloned);
+            // Modify the address in the cloned object
+            cloned.address.city = "Los Angeles";
+
+            System.out.println("After modifying cloned object:");
+            System.out.println("Original: " + original);
+            System.out.println("Cloned: " + cloned);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+Output:
+
+Original: Person{name='Alice', age=30, address=New York}
+Cloned: Person{name='Alice', age=30, address=New York}
+After modifying cloned object:
+Original: Person{name='Alice', age=30, address=Los Angeles}
+Cloned: Person{name='Alice', age=30, address=Los Angeles}
+As seen in the output, modifying the address field in the cloned
+object also affects the original object because both the original
+and the clone share the same Address object.
+
+Deep Copy
+A deep copy, on the other hand, duplicates everything directly or
+indirectly referenced by the fields in the original object.
+This means the cloned object does not share references with the original
+object; it creates a completely independent copy.
+
+Example of Deep Copy
+
+To implement a deep copy, you need to clone each field that is an object:
+
+class Address implements Cloneable {
+    String city;
+    Address(String city) {
+        this.city = city;
+    }
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+}
+class Person implements Cloneable {
+    String name;
+    int age;
+    Address address;
+    Person(String name, int age, Address address) {
+        this.name = name;
+        this.age = age;
+        this.address = address;
+    }
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        Person cloned = (Person) super.clone();
+        cloned.address = (Address) address.clone(); // Deep copy of address
+        return cloned;
+    }
+    @Override
+    public String toString() {
+        return "Person{name='" + name + "', age=" + age + ", address=" + address.city + "}";
+    }
+    public static void main(String[] args) {
+        try {
+            Address address = new Address("New York");
+            Person original = new Person("Alice", 30, address);
+            Person cloned = (Person) original.clone();
+            System.out.println("Original: " + original);
+            System.out.println("Cloned: " + cloned);
+            // Modify the address in the cloned object
+            cloned.address.city = "Los Angeles";
+
+            System.out.println("After modifying cloned object:");
+            System.out.println("Original: " + original);
+            System.out.println("Cloned: " + cloned);
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+Output:
+
+Original: Person{name='Alice', age=30, address=New York}
+Cloned: Person{name='Alice', age=30, address=New York}
+After modifying cloned object:
+Original: Person{name='Alice', age=30, address=New York}
+Cloned: Person{name='Alice', age=30, address=Los Angeles}
+In this case, modifying the address field in the cloned object does
+not affect the original object because both the original and the clone have
+their own separate Address objects.
+
+Conclusion
+Understanding the difference between shallow copy and deep copy is essential
+when working with object cloning in Java.
+By default, the clone() method provides a shallow copy, but with careful
+implementation, you can achieve a deep copy,
+ensuring that your cloned objects are fully independent of the originals.
+Using the Cloneable interface and overriding
+the clone() method correctly allows you to control how objects are copied and
+manage the internal state of your objects
+more effectively.A deep copy, on the other hand, duplicates everything directly
+or indirectly referenced by the fields in
+the original object. This means the cloned object does not share references
+with the original object; it creates a completely independent copy.

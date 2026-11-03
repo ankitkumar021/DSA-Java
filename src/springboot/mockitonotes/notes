@@ -1,0 +1,204 @@
+
+@ExtendWith(MockitoExtension.class):
+@Mock creates a mock implementation for the classes you need.
+@InjectMock creates an instance of the class and injects the mocks
+that are marked with the annotations @Mock into it.
+@spy()->used to partially mock the the methods and fields
+@BeforeEach()->@BeforeEach annotation is used to signal that the annotated
+method should be executed before each invocation of @Test,
+must not static else throws exception
+@RepeatedTest, @ParameterizedTest, or @TestFactory method in the current class.
+
+@Mockito.when() thenReturn();
+
+assertFalse()
+assertTrue()
+assertnull();
+Assert.assertEquals();
+
+Verify(list).add("ankit")->The verify() method is used to check whether
+some specified methods are called or not
+
+Mockito.doNothing().->basically used with the void method.->>>>Mockito 's
+doNothing() is
+used when you want to test void methods because void methods do not return
+anything so there is no way you can verify using assert.
+These void methods may be anywhere, for example, in service class, in dao class, etc.
+
+class Game {
+
+    private Player player;
+
+    public Game(Player player) {
+        this.player = player;
+    }
+
+    public String attack() {
+        return "Player attack with: " + player.getWeapon();
+    }
+
+}
+
+class Player {
+
+    private String weapon;
+
+    public Player(String weapon) {
+        this.weapon = weapon;
+    }
+
+
+    String getWeapon() {
+        return weapon;
+    }
+}
+
+As you see, Game class need Player to perform an attack.
+
+@RunWith(MockitoJUnitRunner.class)
+class GameTest{
+
+@Mock
+Player player;
+
+@InjectMocks
+Game game;
+
+@Test
+ public void attackWithSwordTest() throws Exception{
+
+ Mockito.When(player.getWeapon()).thenReturn(sword);
+
+ assertEquals("players attacks with :sword",game.attack);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ //Mockito will mock a Player class and it's behaviour using when and thenReturn method. Lastly, using @InjectMocks Mockito will put that Player into Game.
+
+ }
+
+
+}
+
+
+Assertion ->class
+
+assertEquals(expected ,actual)->is the static method take 2 paratmeter
+
+what is mocking->mocking helps us in testing functionality of class in isolation
+mock object->simulates real service by taking the input and returning back
+expected output
+book service->class under test
+book repository and email service and author api client ->are external dependencies
+
+since when we write junit for book service  which intern call repo,email,
+network service so it is very difficult to junit why because
+ 1:time consuming and our junit needs to be fast
+ solution of above problem is to create the mock object of these class
+  which helps in testing the book service class in isolation so instead of
+  calling the original services it call the mock dependencies.
+
+
+ what is mockito framework
+ this framework used to create the test double objects(mock object) for unit test.
+ it uses java reflection in order to create mock objects.
+
+ benefits
+ 1:*provides annotation  support(only few annotation we can configure the
+  mockito framework in our uni test )
+ 2:it has support for exception handling
+ 3:it has support for stubbing  methods on mock dependencies.it helps us in
+ returning configured response
+ and we can use that response in our test and finally perform assert on the top of it
+ 4:it can also check order of method calls and the number of time method being
+ called on the mock object
+
+ @RunWith(MockitoJUnitRunner.class)->used in junit4
+
+ @ExtendedWith(MockitoExtension.class)->get to know that there is there is
+ mock object present->used in junit 5
+ @Mock->basically the external dependencies which creates a mock implementation
+  for the classes you need.(book service)
+ @InjectMock->tell the mockito that this is the class under test,
+ creates an instance of the class and injects the mocks that are marked with
+  the annotations @Mock into it.
+ this class is depended on @Mock (book repository)
+
+what is  stubbing
+->the process of writing how a given mock method should behave is stubbing.
+
+performed in 2 ways
+->1:using mockito static method when()+thenReturn()->it states that when
+ specific method is called on the mock object then return  preconfigured value
+->2:using mockito static method doReturn() + when() ->
+
+stubbing void method->scenario when mock object has a void method in that
+ case we cant use when+thenReturn
+use -> doNothing().When(bookRepository).save(book1);
+
+behavior verification -> is done by using verify() method which is used to
+check whether the given method is called once and only once  with given argument
+it helps us in verifying that certain mock method was called by system
+under test or not.
+bookService.addBook(book);->addBook method called bookRepository.save() method
+verify(bookRepository).save():->>verify() method which is used to check
+whether the given method is called.
+verify(bookRepository,times(0)).save();->times indicates how many times
+ save method is called like 0,1,2....
+verify(bookRepository,never()).save();->saves method is never called
+
+how you will verify with no interaction with mock object
+verifyNoInteraction(bookRepository)->bookRepository is a mock object
+
+suppose there is a scenario when there is 2 interaction with mock object
+and 1 st interaction they return from the method how you will verify with
+no interaction with mock object
+use-> verifyNoMoreInteraction(bookRepository)
+
+there different alternative to times() method which are:
+atLeast()
+atMost()
+atMostOnce()
+atLeastOnce
+
+you can also throw exception like below
+
+first throws the exception at the method level(in this SQLException)
+now, when().thenThrow(SQLException.class)
+when().thenThrow(new SQLException());
+
+for void method
+
+doThrow(SQLException.Class).when().save();
+assertThorws(DatabaseException.class,()->bookService.addBook(book);
+
+
+@spy()->used to partially mock the the methods and fields
+when you are using the spy on object and you want to stub out then
+always use doReturn().when().then() don't use when().thenReturn()
+because it actually call the method
+
+behavior verification on spy object is same as mock object
+
+
+
+
+
+

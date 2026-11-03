@@ -1,0 +1,88 @@
+properties sit inside the jar
+
+
+takes application.properties file from the jar
+put another file next to the previous one and it will overrides
+
+@value-> features
+1:provide the default value if the properties is values is not present
+2:managing the list
+3:managing map of values
+
+
+#->treat value after as an expression
+//db.username=ankit
+@Configuration->used to create the beans for this class
+@ConfigurationProperties("db")->db.username,db.password
+instead to pulling the single single value @configuration annotation is used to
+create the beans at once inject the beans the at once
+it is a class level level annotation
+
+when to use @value and and @configurationProperties annotation
+
+if you want to fetch the single value from properties use @value properties
+
+if the are multiple value and are used in the multiple places use
+@configurationProperties with @autowired in the respective class
+
+//another example
+my:
+servers:
+	- dev.example.com
+	- another.example.com
+
+my.servers[0]=dev.example.com
+my.servers[1]=another.example.com
+
+@ConfigurationProperties(prefix="my")
+public class Config {
+
+	private List<String> servers = new ArrayList<String>();
+
+	public List<String> getServers() {
+		return this.servers;
+	}
+}
+
+actuator->provies all the endpoints
+expose all the endpoints - > management.endpoints.web.exposure.include=*
+
+all the endpoints of actuator are not exposed because of the sensitive information
+
+/actuator/config props
+
+what are ways to save the configuration of your application
+difference between properties file and yml
+1:properties files->key=value pair
+2:yml->key:value,it has nesting structures ,means common thing
+can put at one place with indentation to avoid the repeated things
+
+spring profile
+if  no active profile set in that case all the set of configuration is
+ belongs to by default profile will run by spring(default profile is always active )
+
+syntax->application-<properties name>.extn(ex ->.yml,.properties)
+
+use case ->you can create the spring profile for different env like local,
+            dev,production->
+            keep the common thing in the default one and the one change as per env keep
+            them in their env
+
+spring-cloud-config-server->used as config as service where multiple
+microservices interact with each others ,, where config is store on source(git).
+setting up spring cloud config server->achieved centralised,externalised and
+consistent config server.
+
+now after this multiple microservices can consume this configuration
+from spring cloud  config server rather than local properties file by
+creating spring cloud config client
+
+client(suppose microservice ) in yml or properties file we
+declare the spring.cloud.config.uri = http://localhost:8888 and
+client pull the data from server and hardcoded data in yml
+if present then it overrides it.
+
+real time management (refreshing properties at the runtimes)
+
+
+

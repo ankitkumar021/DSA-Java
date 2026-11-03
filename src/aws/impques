@@ -4,6 +4,15 @@
 2:what are the AWS services you are aware of ?AWS which features are you using
 3:What is the diff between EC2 and Lambda service and how you have used in your
     application ?
+    Ephemeral storage (instance store)
+    Amazon EBS
+    The choice of instance type is generally driven by the type of storage:
+
+    If ephemeral storage is required for your application, a storage-optimized (I3)
+    instance is the best option.
+    If your workload requires Amazon EBS, it is best to go with compute-optimized (C5)
+    instances.
+
 4:How to check logs in EKS? What you will do if instance restarted and
      logs are gone?
 5:What's the need of using Docker? Why aren't we just creating a jar file and
@@ -19,7 +28,7 @@ in depth question from aws storage like s3 backup mechanism, ebs and efs.
 
 
 
-1:how you are are doing performance monitoring in your application ?
+1:how you are are doing springboot.performance monitoring in your application ?
 
 2:how to track issues in Splunk ?
 3:How is your build process - Manual or automatic
@@ -43,8 +52,8 @@ in depth question from aws storage like s3 backup mechanism, ebs and efs.
 14:How Authentication and Authorization was being handled for your BackEnd APIs
          in your previous projects.
 15:How jenkin pipeline works and its stages?
-16:What performance monitoring tools were you using to check your application
-         performance.
+16:What springboot.performance monitoring tools were you using to check your application
+         springboot.performance.
 17:Are your aware of Jenkins or AWS CodePipeline? What are these? How have you
         set them up previously.
 18:What will be your debugging approach if some service of yours is not able to

@@ -1,0 +1,126 @@
+
+
+handling exception in springboot microservices:->
+
+1:@ExceptionHandler annotation provided by Spring Boot can be used to handle
+    exceptions in particular Handler classes or Handler methods.
+Any method annotated with this is automatically recognized by Spring
+    Configuration as an Exception Handler Method.
+An Exception Handler method handles all exceptions and their subclasses
+    passed in the argument. It can also be configured to return a specific
+    error response to the user.
+So let’s create a custom ErrorResponse class so that the exception is
+    conveyed to the user in a clear and concise way as follows:
+
+// Custom Error Response Class
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ErrorResponse {
+
+    private int statusCode;
+    private String message;
+
+    public ErrorResponse(String message)
+    {
+        super();
+        this.message = message;
+    }
+}
+
+The addCustomer() method defined by CustomerController throws a
+CustomerAlreadyExistsException when the user tries to add a Customer
+that already exists in the database
+else it saves the customer details.
+
+To handle this exception let’s define a handler method
+handleCustomerAlreadyExistsException() in the CustomerController.
+So now when addCustomer() throws a CustomerAlreadyExistsException,
+the handler method gets invoked which returns a proper ErrorResponse to the user.
+
+// Exception Handler method added in CustomerController to
+// handle CustomerAlreadyExistsException exception
+@ExceptionHandler(value
+                  = CustomerAlreadyExistsException.class)
+@ResponseStatus(HttpStatus.CONFLICT)
+public ErrorResponse
+handleCustomerAlreadyExistsException(
+    CustomerAlreadyExistsException ex)
+{
+    return new ErrorResponse(HttpStatus.CONFLICT.value(),
+                             ex.getMessage());
+}
+
+Note: Spring Boot allows to annotate a method with @ResponseStatus to
+return the required Http Status Code.
+
+On Running the Spring Boot Application and hitting the /addCustomer API
+with an existing Customer,CustomerAlreadyExistsException gets completely
+handled by handler method as follows:
+
+{
+"statusCode":409,
+"message":"customer already exists!!"
+
+}
+
+2:Using @ControllerAdvice for Global Exception Handler:
+
+In the previous approach, we can see that the @ExceptionHandler annotated
+method can only handle the exceptions thrown by that particular class.
+However, if we want to handle any exception thrown throughout the application
+we can define a global exception handler class and annotate it
+with @ControllerAdvice.
+This annotation helps to integrate multiple exception handlers into a single
+global unit.
+The updateCustomer() method defined in CustomerController throws a
+NoSuchCustomerExistsException exception if the user tries to update
+details of a customer that
+doesn’t already exist in the database else it successfully saves the
+updated details for that particular customer.
+To handle this exception, let’s define a GlobalExceptionHandler class
+annotated with @ControllerAdvice.
+This class defines the ExceptionHandler method for
+NoSuchCustomerExistsException exception as follows
+
+// Class to handle exception Globally
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(value
+                      = NoSuchCustomerExistsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ErrorResponse
+    handleException(NoSuchCustomerExistsException ex)
+    {
+        return new ErrorResponse(
+            HttpStatus.NOT_FOUND.value(), ex.getMessage());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+difference between throw and throws
+throw:
+Purpose: Used to explicitly throw an exception object.
+Mechanism: Creates an instance of an exception class (either built-in or custom)
+and uses the throw keyword to send it up the call stack.
+Usage: throw new MyCustomException("Error message");
+
+throws:
+Purpose: Declares that a method might throw exceptions.
+Mechanism: Included in the method signature to inform the compiler and
+other users of the method that it might throw specific exceptions.
+The calling method then becomes responsible for handling or re-throwing
+these exceptions.

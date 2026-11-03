@@ -1,0 +1,90 @@
+
+difference between
+| Feature                           | `Future` | `CompletableFuture`                   |
+| --------------------------------- | -------- | ------------------------------------- |
+| Manual completion                 | ❌        | ✅ (`complete(value)`)                 |
+| Chaining (thenApply, thenCompose) | ❌        | ✅                                     |
+| Combining multiple futures        | ❌        | ✅ (`thenCombine`, `allOf`, `anyOf`)   |
+| Exception handling                | ❌        | ✅ (`exceptionally`, `handle`)         |
+| Non-blocking callbacks            | ❌        | ✅ (`thenAcceptAsync`, `thenRunAsync`) |
+| Custom Executor                   | ✅        | ✅                                     |
+| Reactive style support            | ❌        | ✅                                     |
+
+arraylist vs linkedlist
+| Operation / Position       | ArrayList         | LinkedList | Explanation                                                                |
+| -------------------------- | ----------------- | ---------- | -------------------------------------------------------------------------- |
+| **Insertion at Beginning** | O(n)              | O(1)       | ArrayList must shift all elements; LinkedList just updates a few pointers. |
+| **Insertion in Middle**    | O(n)              | O(n)       | ArrayList shifts elements; LinkedList must traverse to that index.         |
+| **Insertion at End**       | O(1)* (Amortized) | O(1)       | ArrayList sometimes resizes; LinkedList adds directly at tail.             |
+| **Deletion at Beginning**  | O(n)              | O(1)       | ArrayList shifts all elements left; LinkedList updates head pointer.       |
+| **Deletion in Middle**     | O(n)              | O(n)       | Both must traverse to index; ArrayList shifts elements afterward.          |
+| **Deletion at End**        | O(1)              | O(1)       | ArrayList removes last element directly; LinkedList updates tail pointer.  |
+| **Fetching (get(index))**  | O(1)              | O(n)       | ArrayList provides random access; LinkedList must traverse sequentially.   |
+| **Search (contains)**      | O(n)              | O(n)       | Both require full traversal in worst case.                                 |
+
+🔹 ArrayList
+
+Backed by a dynamic array.
+
+Indexed random access → fast get(index).
+
+But insertion/deletion cause shifting of elements.
+
+Resizing happens occasionally (doubling capacity), which makes insertion amortized O(1) at the end.
+
+🔹 LinkedList
+
+Backed by doubly linked nodes.
+
+No random access → must traverse from start or end.
+
+Insertions/deletions only need pointer changes → O(1) when the position is known.
+
+Traversal makes middle operations slower.
+
+| Use Case                                            | Recommended      |
+| --------------------------------------------------- | ---------------- |
+| Frequent insert/delete at **beginning or middle**   | ✅ **LinkedList** |
+| Frequent **random access** or operations at **end** | ✅ **ArrayList**  |
+
+
+map implementation
+
+For each addition of a new entry to the map, check the load factor.
+If it's greater than its pre-defined value (or default value of 0.75 if not given),
+then Rehash.
+For Rehash, make a new array of double the previous size and make it the new
+bucketarray.
+Then traverse to each element in the old bucketArray and call the insert()
+for each so as to insert it into the new larger bucket array.
+
+
+
+putIfAbsent(K key, V value)
+Purpose:
+
+Inserts the given key–value pair only if the key is not already present in the map.
+
+If the key is already present, it does not overwrite the existing value.
+
+Return Value:
+
+Returns the previous value associated with the key,
+
+Or null if there was no mapping for the key before.
+
+🔹 2. getOrDefault(K key, V defaultValue)
+
+Purpose:
+
+Retrieves the value for a given key.
+
+If the key is not found, returns the default value provided.
+
+Does not modify the map.
+
+Return Value:
+
+The value associated with the key if present,
+
+Otherwise the provided default value.

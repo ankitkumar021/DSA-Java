@@ -1,0 +1,76 @@
+
+#s3:use case
+1: Media and Creative Assets
+    • Images & Photos: JPEG, PNG, GIF, SVG,RAW files
+        (e.g., website assets, user profile pictures,e-commerce product galleries).
+    • Videos: MP4, MOV, AVI files (e.g., video-on-demand streaming libraries,
+        security footage, raw production clips).
+    • Audio Files: MP3, WAV, AAC files (e.g., podcasts, voice recordings,
+        music streaming catalogs).
+2: Big Data, Analytics, and AI
+    Data Lakes & Warehouses: Massive datasets stored in CSV, Parquet, JSON,
+    or ORC formats for business intelligence.
+3: Documents and General Files
+    Office & Text Documents: PDFs, Word documents, spreadsheets,
+        and plain text files.
+
+#s3:size handle
+• Maximum object size: 50 TB per individual object (increased from 5 TB).
+• Maximum single PUT upload size: 5 GB
+    (objects larger than 5 GB must use multipart upload).we can set min size like 10mb,
+    after that it will break in chunks.
+
+#Fault tolerance(S3):
+1. Built-in Multi-AZ Fault Tolerance (Intra-Region):By default S3 files
+                      are stored in 3 different availability zones in the same region.
+2: Cross-Region Replication (CRR) for Regional Fault Tolerance.
+
+#how s3 is expose to end users:
+Amazon only exposes regions for S3 to end users.
+Amazon does not expose availability zones for S3 to end users.Therefore it's not
+    user-configurable.
+
+
+#how to create multipart upload in s3:
+
+1. CreateMultipartUpload (Initiation)
+/createMultipartupload(String filename)->will get uploadId
+
+• What it does: Notifies Amazon S3 that you are about to upload a new object in parts.
+• What it returns: S3 returns a unique UploadId. You must include this specific ID
+  in all subsequent part uploads and the final completion request.
+.uploadId is used to create presigned url.
+. After this we need to create as many presigned url as chunks.
+/generatepresignedurl(filename,uploadId,partnumber(chunksnumer))
+.This presigned url to passed to frontend to upload.
+
+2. UploadPart (Execution)
+
+• What it does: Uploads the individual chunks of your file.
+• How it works: You call this API repeatedly (sequentially or in parallel) for
+  each part of the file. With each call, you must pass the UploadId and a unique
+  PartNumber (from 1 to 10,000).
+• What it returns: S3 returns an ETag header for each successfully uploaded part(chunks).
+  You must store these ETags and their corresponding part numbers in a list;
+  you will need them for the final step.
+  An ETag (Entity Tag)->
+    ETag Value Format:Standard MD5 Hex:"5d41402abc4b2a76b9719d911017c592"
+    Hex Hash + Dash + Part Count:"a7c362...c54-3"
+
+    Core Use Cases for ETags in S3->
+        1:Data Integrity Checks
+
+3. CompleteMultipartUpload (Completion)
+/completeMultipartUpload(filename,uploadId,part(which contains etag))
+• What it does: Tells S3 you have finished uploading all pieces.
+• How it works: You pass the UploadId along with the list of part numbers and
+  their respective ETag values that you collected
+  in Step 2. S3 then stitches the parts together into a single file, cohesive object
+
+what is presigned URL:
+An Amazon S3 presigned URL is a secure, temporary link that grants
+time-limited access to specific private S3 objects without requiring
+AWS credentials or changing bucket policies.
+
+
+

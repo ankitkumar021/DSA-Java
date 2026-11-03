@@ -1,5 +1,23 @@
 
-flow:client->controller()->service(validate,save,return response)->storage(local folder,s3,db)
+flow:client->controller()->service(validate,save,return response)->
+    storage(local folder,s3,db)
+
+in my company seller upload the product  directly to s3 bucket not to the spring boot
+application (
+1:as application server consume network and bandwidth,
+2:scaling becomes expensive
+3:thousands of concurrent uploads can overload the application)
+
+1:frontend/website/mobile app :-> 2:api gateway/ springboot :->3:s3 multipart uploads
+    4:->kafka :-> workerconsumer
+
+in my company we are interating with seller data where we expose api
+like post ipload/intiate -> create upload session
+2:post /uploads/{id}/parts
+
+
+
+
 
 //upload(post)
 
@@ -57,15 +75,17 @@ public ResponseEntity<?> downloadFile(@PathVariable String fileName){
 
 important follow question
 1: (in distributes system where they are multiple instance goes -> i would store in s3 )
-2:how do handle large file 2gb
+2:how do handle large file 2gb.
 
-  optiona:a -> in this scenario we cannot store it into the bytes (2gb->byte[]->jvm->oom)
+  option:a -> in this scenario we cannot store it into the bytes (2gb->byte[]->jvm->oom)
                 instead use streaming
                     try(InputStream inputStream = file.getInputStream()){
                         //stream to storage
                     }
 
-  option:b ->use an s3 upload mechanism designed for streaming/multipart uploads
+  option:b -> file above 5gb we use s3 multipart upload use an s3 upload mechanism
+              designed for streaming/multipart uploads.
+
 
 3:what if s3 is down ?
 1:timeout
@@ -82,6 +102,21 @@ follow back question what if client don't came for part4 and future?
      to abort incomplete multipart upload after a certain no of days
 
 who do handle the scalability
-->i would preferably use presigned URLs so the client uploads the parts directly to s3 rather
-than sending the entire file through springboot
+->i would preferably use presigned URLs so the client uploads the parts directly
+to s3 rather than sending the entire file through springboot.
+
+
+I think S3 files are stored in 3 different availability zones in the same region.
+So it is related to availability zones.
+
+
+I suppose a more accurate response is that
+
+Amazon S3 ensures fault tolerance by automatically spreading data across
+multiple Availability Zones (AZs) within a single region,
+and you can extend this to protect against whole-region failures using
+Cross-Region Replication (CRR)
+
+
+
 

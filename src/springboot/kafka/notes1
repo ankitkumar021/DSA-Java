@@ -1,0 +1,600 @@
+
+✅ Topics and Partitions
+
+[ Topics ]
+🔹Act as logical categories for messages, organizing them by topic name.
+
+[ Partitions ]
+🔹Each topic consists of one or more partitions, horizontally scaling data
+and enabling parallel processing.
+
+🔹Messages are distributed across partitions, improving read/write throughput
+ and fault tolerance.
+
+
+✅ Log Segments
+
+🔹Partitions are further divided into log segments for efficient writes and deletes.
+
+🔹Each segment is immutable, ensuring data integrity and simplifying recovery.
+
+🔹Messages are only appended to segments, never modified or overwritten.
+
+👉 The obvious question is, how is cleanup done?
+
+🔹Older segments are automatically removed based on retention policies and
+ compaction strategies.
+
+🔸Log Cleaner
+Removes old log segments based on configured retention and compaction settings.
+
+🔸Compaction
+Compacts old segments by removing duplicates and re-writing data in a more
+efficient format.
+
+
+✅ Replication
+
+🔹Data is replicated across multiple brokers for fault tolerance.
+
+🔹Replication Factor - Configures the number of replicas for each partition.
+
+🔹One replica designated as "leader" serves reads/writes, while others
+("followers") synchronize data asynchronously.
+
+🔹If a leader fails, a follower becomes the new leader, minimizing downtime.
+
+✅ Offsets and Ordering
+
+🔹Consumers track their progress within a partition using offsets (positions).
+
+🔹Clients periodically commit offsets, indicating what messages they've consumed.
+
+🔹Message ordering is preserved within each partition, not globally across partitions.
+
+
+👉 [ Storage Tiers ]
+
+🔸Primary Storage
+Messages reside on high-performance disks for fast access and frequent reads/writes.
+
+🔸Secondary Storage
+Messages can be moved to cheaper, slower storage (e.g., S3) for long-term archiving.
+
+
+
+Kafka Topic - partition 10
+
+kafka Consumer group - 10
+
+Each consumer group has - 5 consumers
+
+Suddenly the throughput increased into kafka topic
+
+The consumer code logic is taking some time to process the payload.
+
+how lag  cause?
+->1:slow consumer processing
+consumer take too long to process each message (heavy computation ,
+slow database writes),kafka consumer lag happens when consumer is not
+keeping up with the rate at which messages are being produced .
+might be case batch size is too large and processing each batch takes time.
+->2:insufficient consumer parallelism
+if there are more partition than consumers in a group,
+some consumers process multiple partition->can cause lag
+in my case each group have 5 consumers and total partition is 10 ,
+so each consumer is taking 2 partition to process.
+->3:write to database is slow
+consumer write to a slow db like cassandra->can lead to lag build build up
+->4:network latency/bandwidth issues
+high network latency can delay message fetching and committing offsets.
+->5:topic rebalancing
+frequent rebalance happen due to consumer joins/leaves,consumer are paused and
+delay processing.
+->6:repeated retries or failure to commit can cause consumers to fall behind.
+
+how to handle it?
+->1:increase consumer parallelism
+add more consumers to consumers group (up to number of paritions)
+->2:optimize message processing
+improve performance of processing logic (eg:reduce db calls, add caching ,
+batch db writes)
+use large thread poll for I/O work.
+
+
+->3:tune the config
+like fetch.min.bytes,fetch.max.wait.ms,max.poll.record and
+ max.poll.interval.ms can be tuned
+
+a>The minimum amount of data the server should return for a fetch request.
+If insufficient data is available the request will wait for that much data to
+accumulate before answering the request.
+The default setting of 1 byte means that fetch requests are answered as soon as
+that many byte(s) of data is available
+or the fetch request times out waiting for data to arrive. Setting this to
+a larger value will cause the server to wait
+for larger amounts of data to accumulate which can improve server throughput a
+bit at the cost of some additional latency.
+
+b>fetch.max.bytes:->default is 50 memibytes
+The maximum amount of data the server should return for a fetch request.
+Records are fetched in batches by the consumer,
+and if the first record batch in the first non-empty partition of the fetch is
+larger than this value,
+the record batch will still be returned to ensure that the consumer
+can make progress. As such, this is not a absolute maximum.
+The maximum record batch size accepted by the broker is defined via
+message.max.bytes (broker config) or max.message.bytes (topic config).
+Note that the consumer performs multiple fetches in parallel.
+
+c> max.poll.interval.ms:->
+configures the maximum time a consumer can wait between calls to poll()
+before it's considered unresponsive and removed from the consumer group.
+The default value is 300,000 milliseconds (5 minutes).
+If a consumer takes longer than this interval to process a batch of messages
+and call poll() again, the consumer group will rebalance,
+potentially leading to performance issues
+
+
+4:enable batching and async writes
+5:scale brokers or use faster storage for the kafka cluster if its
+not able to serve consumers efficiently.
+
+
+
+Examples of Subscribing to Multiple Topics
+Data Aggregation and Analytics.
+Let’s start with the example of a data analytics platform.
+This platform analyzes data from many sources.
+Some example data sources are website clicks, user interactions,
+and social media feeds.
+
+These sources get split amongst topics. The architecture can either:
+
+use separate consumers for each topic
+use a consolidated consumer that listens to multiple topics
+Either approach can work. However, using a consolidated consumer simplifies
+the data processing pipeline and reduces overhead.
+
+Microservices Communication.
+Let’s next consider a microservice architecture. In a microservices architecture,
+ different services communicate through Kafka to exchange information.
+
+Each microservice might be responsible for specific functionalities.
+In that case they might need to subscribe to multiple topics to access relevant data.
+By doing so, microservices remain loosely coupled, facilitating scalability
+and maintainability.
+
+Below is an example code snippet for a consumer subscribing to multiple topics.
+
+import org.apache.kafka.clients.consumer.*;
+import java.util.Arrays;
+
+public class MicroserviceConsumer {
+    public static void main(String[] args) {
+        Properties properties = new Properties();
+        properties.put("bootstrap.servers", "kafka-broker:9092");
+        properties.put("group.id", "microservice_group");
+        properties.put("enable.auto.commit", "true");
+        properties.put("auto.commit.interval.ms", "1000");
+        properties.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+        properties.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+
+        KafkaConsumer<String, String> consumer = new KafkaConsumer<>(properties);
+        consumer.subscribe(Arrays.asList("orders", "inventory", "payments"));
+
+        while (true) {
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+            for (ConsumerRecord<String, String> record : records) {
+                // Process the record data here
+                processRecord(record);
+            }
+        }
+    }
+}
+
+Subscribing to Multiple Topics: Impact on Kafka and Hardware
+
+Does having consumers listen to multiple topics slow down Kafka’s performance?
+Yes, there is an impact, and it is manageable with proper design and configuration.
+
+When consumers listen to multiple topics, they may generate a
+higher load on the Kafka cluster.
+This is especially true if the topics have high message rates.
+
+This additional load can be addressed by adding brokers,
+optimizing consumer groups, and adding hardware.
+
+Kafka is horizontally scalable. Horizontal scalability refers to the ability
+to add more brokers to the cluster.
+This structure helps in accommodating higher workloads.
+
+Optimizing the consumer group and Kafka brokers can further improve performance.
+Learn about Kafka broker optimization.
+
+The need for extra hardware will depend on the number of consumers and
+message throughput. Establishing effective monitoring will help determine
+hardware needs.
+Read about setting up Kafka monitoring with open source tools here.
+
+1: how does kafka handle message size limits?
+ it configuration value
+
+ 1:broker (server side)->message.max.bytes(default:1MB)
+ and message that can be fetch by replicas >=message.max.bytes
+
+ 2:producer side->max.request.size(default:1MB)
+ batch.size->to control to message to increase the throughput
+
+ 3:consumer side->fetch.message.max.bytes(consumer property)
+
+ when a message exceeds these limits:
+ 1:Producer will throw RecordTooLargeException
+ 2:Broker may reject the message with MessageTooLargeException
+ 3:Consumer may get stuck if they cant fetch large message due to size mismatch
+
+ best practice is to use compression on the producer in walmart we were using zstd.
+
+2: how does kafka support scalability?
+
+	1:through multiple partition
+	2:distributed processing through through multiple broker
+
+	consumers can be grouped to read the multiple portion simultaneously
+	each broker can be grouped together into cluster and cluster can be scaled without downtime.
+
+3:what is the purpose of idempotent producers in kafka?
+	it is used to prevent the duplicate message case of network failure or producer retries
+	idempotent producers produce message to particular portion even in case of retries
+
+4:how does kafka handle delivery time out
+	producer side:
+	kafka handles delivery timeout by defining a maximum time the producer is allowed to try devilerying a message before failing it with an exception.
+	this ensure message are not stuck indefinitely due to retries ,broker unavailability
+
+	what it does:
+	delivery.timeout.ms(fault = 2min)
+	additional upper bound
+	1:retry
+	2:wait for broker ack
+
+	if the message is not delivered within time message including the retires and backoff is dropped and producer gets a TimeoutException.
+
+	producer setting:
+	delivery.timeout.ms(fault = 2min)->max time allowed for a message to
+	sent successfully
+	requestTimeout.ms->timeout for single broker request(default:30s)
+	retries->number of retry attempts
+	linger.ms->wait time before sending a batch
+	acks->controls durability:0,1,all
+	retry.backoff.ms->(delay between retries)
+
+	what happens on timeout:
+	message is dropped from producer buffer
+	an error callback is triggered (if you use producer.send(...,callback)
+	can we retry manually -> yes
+
+	consumer settings:
+	on consumer side, kafka doesn't have a delivery.timeout.ms but
+	it handles timeout and failures using polling,session timeouts,
+	heartbeat intervals, and max fetch settings.
+
+	key timeout settings on consumer side:
+	1:max.poll.interval.ms(5min)->max time allowed between call to
+	poll(default:5 min) on consumer.if the consumer does not call poll
+	within this interval
+	it is considered as being stuck or unable to process message and
+	broker will trigger a rebalance.
+	2:session.timeout.ms(15sec)->max time a consumer can be
+	inactive(without sending the heartbeats) before the broker consider it dead and
+	initiates a rebalance of consumer group(default:10s)
+	3:heartbeat interval->controls how frequent the consumer sends
+	heartbeats saying hey i am alive(5 sec)
+
+5:how does kafka handle message deliver semantics:
+
+	3 ways:
+	1:at most once-> message may be lost but cannot redelivered
+	2:at least once->message can never lost but may be redelivered
+	3:exactly once->each message is delivered once and only once
+
+6:how does kafka handle message deletion
+	kafka doesn't delete the message but it is configurable ,
+	it uses the retention policy to manage the message deletion(remove log file)
+	it uses log compaction
+
+7:what is role of group co-ordinator?
+	it manages the consumer-groups
+	assign partition to consumer in the consumer group
+	manges offset commit
+	when consumer leave /join it trigger rebalance to assign
+	partition among among remaining consumers.
+
+8:How does kafka ensure message durability
+
+	kafka ensure durability through:
+
+		1:disk persistence->message are written to disk as soon as they arrive
+		2:replication->data is replicated across multiple broker
+		3:ack(all)->ensures a message is considered commited only when
+		all replicas ack it
+		4:write ahead log->kafka use commit log structure to store data.
+
+9:how does kafka ensure ordering
+
+	kafka guarantees message ordering only within a single partition of topic.
+	each partition in kafka topic is an ordered,immutable sequence of messages.
+	message within partition are assigned a unique offset in order they arrive.
+
+	kafka cannot ensure the ordering across partition
+
+	consumer behaviors:
+	a single consumer instance gets one partition at a time,preserving order within it.
+
+	what breaks ordering:
+	batching
+	retries
+	multiple partitions
+
+10:how does kafka ensure duplicate message at both producer and consumer side
+1. Producer Side – Avoiding Duplicate Messages:
+Resolution: Idempotent Producer
+Idempotent producer can help resolve the issue. To achieve this, the order service
+should be assigned a unique producer ID (PID) and
+each message published should be given a sequence number. The combination of PID
+and the sequence number is tracked by Kafka as a unique ID for a message.
+So, when a retry happens for an existing message, Kafka gives an acknowledgement
+back without appending the message to the log.
+
+🔐 Idempotent Producer (enable.idempotence=true)
+Guarantees that retries won’t produce duplicates.
+Kafka assigns a Producer ID (PID) and a sequence number for each message.
+The broker keeps track of these, and rejects duplicates if the same PID and
+sequence number are seen again.
+
+enable.idempotence=true
+
+Works only with acks=all.
+Requires retries > 0.
+Ensures exactly-once production per topic-partition.
+
+✅ 2. Consumer Side – Avoiding Duplicate Consumption
+Kafka is at-least-once by default, which means:
+A consumer might receive a message more than once
+ (e.g., after a failure or rebalancing).
+It's the consumer’s job to ensure idempotent processing.
+
+a. Commit Offsets Carefully
+Use manual commit after processing:
+consumer.commitSync();
+Ensures you only commit offsets after successful processing.
+
+| Side         | Duplicates?                      | How to Avoid                                                             |
+| ------------ | -------------------------------- | ------------------------------------------------------------------------ |
+| **Producer** | Possible (on retries)            | Set `enable.idempotence=true` (Kafka ensures no duplicates on retries)   |
+| **Consumer** | Possible (on rebalancing, crash) | Use idempotent processing, careful offset commits, or Kafka transactions |
+
+11:what is difference between ack=0,ack=1,ack=all
+The acks configuration in Apache Kafka producers controls how many
+acknowledgments the leader broker must receive before the producer
+considers a write successful.
+It directly affects message durability, latency, and reliability.
+
+acks=0
+Fire-and-forget mode.
+Producer does not wait for any acknowledgment from the broker.
+Fastest, but least reliable—you might lose data if the broker crashes
+before persisting the message.
+
+🔴 Risks:
+No retries.
+No way to know if the message was received.
+
+✅ acks=1
+The leader broker acknowledges the message after writing it to its local log
+(not necessarily to replicas).
+Offers a balance between performance and durability.
+
+🟡 Risks:
+If the leader crashes before replication, the message is lost, even though the
+producer saw an "ack".
+
+✅ acks=all (or acks=-1)
+The producer waits until the leader and all in-sync replicas (ISRs)
+have acknowledged the message.
+Safest option—highest durability.
+
+🟢 Benefits:
+Guarantees that no message is lost, even if the leader broker crashes
+immediately after an ack.
+Required for idempotent and transactional producers.
+
+🔴 Trade-off:
+Higher latency and lower throughput, especially with many replicas.
+
+| Setting    | Acknowledged By      | Performance | Durability | Use Case                        |
+| ---------- | -------------------- | ----------- | ---------- | ------------------------------- |
+| `acks=0`   | No one               | 🚀 Fastest  | ❌ Weak     | Fire-and-forget, low-risk logs  |
+| `acks=1`   | Leader only          | ⚡ Fast      | ⚠️ Medium  | Common use case (default-ish)   |
+| `acks=all` | All in-sync replicas | 🐢 Slowest  | ✅ Strong   | Critical data, high reliability |
+
+If you're using enable.idempotence=true, Kafka automatically sets:
+
+acks=all
+
+retries=Integer.MAX_VALUE
+
+which is best option for highly scalable system?
+For a highly scalable system, the best Kafka acks setting depends on how you balance:
+Throughput and latency (performance)
+Data durability and correctness (reliability)
+
+✅ Recommended: acks=all + enable.idempotence=true
+| Feature               | Why it matters in scalable systems                  |
+| --------------------- | --------------------------------------------------- |
+| `acks=all`            | Ensures **data is not lost** even if leader crashes |
+| `enable.idempotence`  | Prevents **duplicate messages** during retries      |
+| Scalable ISR handling | Kafka handles replication across multiple brokers   |
+
+
+Allows safe retries without duplicates.
+Maintains exactly-once semantics when combined with transactions.
+Scales well with horizontal broker scaling, thanks to partitioning.
+
+🚀 Performance Considerations
+Even though acks=all is slower than acks=1, it's still highly scalable in Kafka
+because:
+Kafka is designed for high-throughput under replication.
+You can scale horizontally:
+More partitions ⇒ more parallelism.
+More brokers ⇒ more capacity for replication and ISR.
+
+| Goal                          | Best Option                              |
+| ----------------------------- | ---------------------------------------- |
+| High scalability + durability | ✅ `acks=all` + `enable.idempotence=true` |
+| High performance + some risk  | ⚠️ `acks=1`                              |
+| Fire-and-forget logging       | ❌ `acks=0`                               |
+
+
+12:how kafka ensure there is no message lost
+
+Kafka ensures no message loss through a combination of durability, replication,
+and acknowledgment mechanisms.
+However, zero message loss is only guaranteed when it's correctly configured —
+Kafka can lose messages if you're not careful.
+
+# Producer
+acks=all
+enable.idempotence=true
+retries=Integer.MAX_VALUE
+retry.backoff.ms=100
+
+# Broker
+replication.factor=3
+min.insync.replicas=2
+unclean.leader.election.enable=false
+
+# Consumer (if applicable)
+enable.auto.commit=false
+
+When Can Kafka Still Lose Messages?
+| Situation                                 | Fix / Protection                    |
+| ----------------------------------------- | ----------------------------------- |
+| `acks=0` or `acks=1` used                 | Use `acks=all`                      |
+| Producer retries without idempotence      | Use `enable.idempotence=true`       |
+| Broker failure + unclean leader election  | Set `unclean.leader.election=false` |
+| Consumer commits offset before processing | Commit manually *after* processing  |
+| Low replication factor (e.g., 1)          | Use ≥ 3                             |
+
+✅ In Summary:
+Kafka ensures no message loss only when properly configured. The key pillars are:
+Reliable producer settings (acks=all, idempotence)
+Replication with in-sync replicas
+Disk-based durability
+Safe consumer offset handling
+
+13:
+linger.ms is the number of milliseconds a producer is willing to wait before sending a batch out. The default value is 0, which means "send the messages right away".
+
+
+14:how do handle the back pressure in kafka?
+Handling backpressure in Apache Kafka is about managing situations where
+ the producer is sending messages faster than the consumer (or broker)
+can handle, or consumers are lagging behind.Kafka doesn’t provide automatic
+ backpressure handling like some reactive systems,
+but you can implement strategies on both the producer and consumer sides.
+
+✅ What is Backpressure in Kafka?
+Backpressure happens when:
+Producers overwhelm brokers or topics.
+Consumers can’t keep up with the incoming data.
+
+🔧 Strategies to Handle Backpressure
+📌 1. Producer-side Backpressure
+✅ a. Tune acks, retries, linger.ms, batch.size
+
+acks=all
+retries=3
+linger.ms=50
+batch.size=32768
+acks=all makes producers wait for confirmation from all in-sync replicas.
+linger.ms and batch.size let you buffer messages, reducing pressure on brokers.
+
+📌 2. Consumer-side Backpressure
+✅ a. Control max.poll.records
+Limit the number of records returned in a poll:
+
+max.poll.records=100
+This prevents the consumer from getting too many messages at once,
+giving it time to process the batch before fetching more.
+
+✅ b. Increase processing parallelism
+Use multi-threading or thread pools to process records concurrently.
+
+Make sure processing time is faster than consumption rate.
+
+✅ c. Tune fetch.min.bytes, fetch.max.bytes
+Control how much data is fetched per poll from the broker.
+
+15:if producer produce the message but got dropped what will consumer do in kafka?
+
+| Scenario                             | Can DLQ Be Used? | How?                                |
+| ------------------------------------ | ---------------- | ----------------------------------- |
+| Producer fails to send message       | ✅ Manually       | Catch error, send to DLQ manually   |
+| Message fails during consumption     | ✅ Automatically  | Use DLQ via Spring Kafka or Streams |
+| Message dropped silently by producer | ❌ No             | No record to recover or move        |
+
+
+when parition stuck and how to resolve it?
+what causes lag?and how to resolve it?
+
+
+ How to Check If a Kafka Producer or Consumer is Down
+1. Kafka Producer
+Kafka producers don’t maintain a persistent connection like consumers;
+they just send messages. However, you can detect problems by:
+
+a. Producer Client Metrics & Logs
+Kafka producer exposes metrics via JMX or your monitoring system:
+record-send-rate: Messages sent per second
+record-error-rate: Error rate when sending messages
+request-latency-avg: Average request latency
+If you see high error rate or no records sent over time,
+the producer might be down or stuck.
+Check application logs for exceptions like:
+TimeoutException
+NetworkException
+NotEnoughReplicasException
+
+Application Health Checks
+Implement health endpoints (e.g., Spring Boot Actuator /health) that:
+Attempt a lightweight send or check the producer state.
+Use circuit breakers or retry frameworks to surface persistent failures.
+
+Consumers maintain a connection with Kafka brokers as part of a consumer group.
+Here are ways to check if a consumer is down:
+kafka-consumer-groups.sh --bootstrap-server <broker> --describe --group <group-name>
+This shows:
+
+Consumers in the group
+Partition assignments
+Lag (messages behind the latest offset)
+If no active consumers appear for the group or lag does not decrease,
+consumers might be down or stuck.
+Kafka broker logs detect when consumers leave groups due to missed heartbeats.
+
+Metrics to monitor:
+consumer-fetch-manager-metrics.records-consumed-rate
+consumer-fetch-manager-metrics.fetch-latency-avg
+consumer-coordinator-metrics.commit-latency-avg
+If these drop or stop reporting, consumer might be down.
+
+c.Monitoring Consumer Heartbeats
+Kafka consumers send heartbeats to the group coordinator.
+Missed heartbeats trigger rebalances.
+You can monitor heartbeat rates via JMX or metrics exporter tools.
+
+| Component    | How to Check                                                     | Tools/Commands                        |
+| ------------ | ---------------------------------------------------------------- | ------------------------------------- |
+| **Producer** | Monitor metrics/logs, error rates, health endpoints              | JMX, Spring Boot Actuator, Logs       |
+| **Consumer** | Monitor group membership and lag, heartbeat metrics, broker logs | `kafka-consumer-groups.sh`, JMX, Logs |

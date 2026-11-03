@@ -1,0 +1,38 @@
+
+
+how is exception hirerarchy in inheritance child and
+parents class(when  and what exception can child class throws
+✅ Quick Summary
+
+Checked exceptions:
+
+Child ≤ Parent (same, narrower, or none).
+
+Broader or new checked exceptions are not allowed.
+
+Unchecked exceptions:
+
+No restriction (child can throw new ones).
+
+Compile-time rules:
+
+These are enforced by the compiler, not runtime.
+
+Mavan command:
+1:mvn clean install
+
+Force update dependencies (download latest from repo):
+mvn clean install -U
+
+
+👉 Builds project but skips running tests (often used in quick local builds).
+2:mvn clean install -DskipTests
+
+is also heavily used to debug dependency conflicts.
+3:mvn dependency:tree
+
+1. First-level cache – default, per session.
+
+
+2. Second-level cache – optional, across sessions.
+

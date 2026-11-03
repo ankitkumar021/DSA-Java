@@ -239,7 +239,7 @@ Often called the “application metrics facade” for Java.
 
 Key Point:
 
-Micrometer measures application performance and behavior,
+Micrometer measures application springboot.performance and behavior,
 while traceId is for tracking a single request across distributed services.
 They complement each other but serve different purposes.
 

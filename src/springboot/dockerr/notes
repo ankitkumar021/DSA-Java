@@ -1,0 +1,193 @@
+
+docker container:
+https://www.geeksforgeeks.org/cloud-computing/what-is-dockerfile/
+
+how to create your own docker container and push it on the dock hub in
+springboot like application:
+
+dockerfile------>(build)---->dockerImage----->(run)--->dockerContainer
+
+1. Create the Dockerfile->>>The Dockerfile uses DSL (Domain Specific Language)
+ and contains instructions for generating a Docker image.
+In the root of your Spring Boot project (where pom.xml or build.gradle is),
+create a file named Dockerfile:
+# Use a lightweight OpenJDK image
+FROM openjdk:17-jdk-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Add the jar file (built app) to the image
+ARG JAR_FILE=target/*.jar
+COPY ${JAR_FILE} app.jar
+
+# Expose the port your app runs on
+EXPOSE 8080
+
+# Command to run the jar file
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+Build the Spring Boot App
+
+
+2. Build the Spring Boot App
+Use Maven or Gradle to build your .jar file:
+Maven:./mvnw clean package
+
+The output will be in the target/ or build/libs/ directory.
+
+3. Build the Docker Image--->An artifact with several layers and a lightweight,
+ compact stand-alone executable package that contains all of the components
+required to run a piece of software,including the code, a runtime, libraries,
+environment variables, and configuration files is called a Docker image.
+docker build -t your-dockerhub-username/your-app-name .
+docker build -t jenkins:1 .->Build the image by using the below command with the
+help of Dockerfile and give the necessary tags. and the dot(.)
+represents the current directory which is a path for Dockerfile.
+
+Replace your-dockerhub-username and your-app-name accordingly.
+
+Run the Docker Image (Optional Test)--->A container is a runtime
+instance of an image. Containers make development and deployment more efficient
+since they contain all the dependencies and parameters needed for the application
+it runs completely isolated from the host environment.
+Run the container with the help image ID or tag of the image by using the below command.
+docker run -d -p 8080:8080 <Imagetag/ID>
+docker run -p 8080:8080 your-dockerhub-username/your-app-name
+
+
+Visit http://localhost:8080 to verify it works.
+
+pushing into docker hub:
+Login to Docker Hub
+docker login
+
+docker push your-dockerhub-username/your-app-name
+docker push johndoe/springboot-hello
+
+
+Now anyone can pull and run your Spring Boot app with:
+docker pull johndoe/springboot-hello
+docker run -p 8080:8080 johndoe/springboot-hello
+
+
+Docker Compose:
+Docker Compose is useful if you want to run your app along with other
+services like a database (e.g. PostgresSQL, MySQL) or to simplify
+running multi-container environments.
+
+
+
+ Full Example: Spring Boot App + Docker Compose
+Let’s continue using our previous "Hello, Docker World!" Spring Boot app.
+
+Step 1: Build the Spring Boot JAR
+./mvnw clean package
+
+Step 2: Dockerfile
+Ensure you have this in your project root:
+# Use a lightweight JDK base image
+FROM openjdk:17-jdk-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy the JAR
+COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
+
+# Expose Spring Boot default port
+EXPOSE 8080
+
+# Command to run the JAR
+ENTRYPOINT ["java", "-jar", "app.jar"]
+
+Step 3: docker-compose.yml
+Create a file named docker-compose.yml in the root:
+
+version: '3.8'
+
+services:
+  springboot-app:
+    build: .
+    container_name: springboot-container
+    ports:
+      - "8080:8080"
+
+
+
+Bonus: Compose with Database (Example)
+Want to add a PostgreSQL database?
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: demo
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+
+  springboot-app:
+    build: .
+    container_name: springboot-container
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/demo
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+In your application.properties:
+spring.datasource.url=${SPRING_DATASOURCE_URL}
+spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+
+Then run:
+docker-compose up --build
+
+how to combine two docker container using docker compose
+To combine two Docker containers using Docker Compose, you define
+both services in a single docker-compose.yml file.
+This is ideal when you want a Spring Boot app to work alongside another service,
+like PostgresSQL, MySQL, Redis, or MongoDB.
+
+Let’s say:
+One container is your Spring Boot app
+Another is a PostgreSQL database
+
+1. docker-compose.yml
+
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-db
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  springboot-app:
+    build: .
+    container_name: springboot-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydb
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: pass
+
+volumes:
+  postgres_data:

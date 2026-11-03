@@ -1,0 +1,54 @@
+
+Swagger UI to generate interactive API documentation that lets your users
+ try out the API calls directly in the browser.
+Swagger reads the API’s structure,
+ and automatically build beautiful and interactive API documentation.
+
+ 1:
+ <dependency>
+     <groupId>org.springdoc</groupId>
+     <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+     <version>2.6.0</version>
+ </dependency>
+
+
+Step 2: Configure Custom API Information (Optional)
+
+Spring Boot automatically generates generic documentation without any extra
+configuration. However, you can easily customize the
+API metadata (like title, description, and version)
+by creating a Java configuration class
+
+
+Step 3: Document Your Controllers
+
+Use the standard io.springboot.swagger.v3.oas.annotations library to provide clear notes,
+expected status codes, and descriptions directly inside your REST Controllers
+
+java
+import io.springboot.swagger.v3.oas.annotations.Operation;
+import io.springboot.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.springboot.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/products")
+@Tag(name = "Product Management", description = "Endpoints for creating, updating, and fetching items")
+public class ProductController {
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get a product by ID", description = "Returns a single product object based on its unique identifier")
+    @ApiResponse(responseCode = "200", description = "Product successfully retrieved")
+    @ApiResponse(responseCode = "404", description = "Product not found matching the provided ID")
+    public String getProductById(@PathVariable Long id) {
+        return "Product details for ID: " + id;
+    }
+
+
+Step 4: Verify and Run
+
+1. Start your Spring Boot application.
+2. Open your web browser and navigate to the interactive dashboard:
+👉 http://localhost:8080/springboot.swagger-ui/index.html
+3. If you need the raw JSON Open API specifications for frontend generators or Postman imports, visit:
+👉 http://localhost:8080/v3/api-docs

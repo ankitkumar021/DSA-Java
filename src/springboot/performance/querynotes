@@ -158,6 +158,18 @@ where n>=(select count(distinct salary) from employee e2
 where e2.salary>=e1.salary)
 order by e1.salary desc
 
+1:employee along with there manager name:
+
+select e1.employee_id,e1.employee_name,m.manager_name
+from employee e1
+join employee m
+on m.employee_id = e1.manager_id;
+
+2:number of customer in each country
+select country,count(*) as total_customer from customer
+groupBy country;
+
+
 what is completion service.
 CompletionService is an interface that decouples the submission of asynchronous tasks from the processing of their results.
 The concrete implementation, ExecutorCompletionService, uses an Executor to run tasks and places the results of completed tasks

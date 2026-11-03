@@ -1,0 +1,33 @@
+Providing Utility Methods Related to the Interface: Static methods in interfaces allow for the grouping of utility functions
+ or helper methods that are logically associated with the interface itself,
+ but do not require an instance of an implementing class. This can reduce the need for separate, dedicated utility classes
+
+
+ No Overriding Ambiguity: Unlike default methods, static methods in interfaces cannot be overridden by implementing classes.
+ This removes any potential ambiguity or complexity related to method resolution in the presence of multiple inheritance of interfaces.
+
+
+
+ what is utility class .
+ In Java, a utility class is a class primarily designed to provide a collection of static methods that perform common, generic operations,
+ without requiring an instance of the class to be created.
+ These classes typically have no instance-specific state (fields) and are not meant to be instantiated.
+
+
+Here are the key characteristics of a utility class in Java:
+
+Static Methods: All or most of its methods are static, meaning they can be called directly on the class itself without creating an object.
+No Instance State: Utility classes usually do not contain instance variables or maintain any state specific to an object.
+Their methods operate independently, taking all necessary data as arguments.
+
+Private Constructor: To prevent instantiation, utility classes typically have a private constructor.
+This ensures that no objects of the class can be created, reinforcing its role as a container for static utility methods.
+Generic Functionality: They provide reusable functionality that is not tied to any specific object or business logic within an application.
+Examples include mathematical calculations, string manipulations, date/time formatting,
+or file system operations.
+
+difference between helper and utility classes:
+Helper classes can be instantiated, while utility classes cannot be instantiated because they have a private constructor.
+Helper classes can have instance variables and also have both instance and static methods.
+Utility classes only have static variables and methods.
+Utility classes often have a global scope within our application, while helper classes are always given a package scope.

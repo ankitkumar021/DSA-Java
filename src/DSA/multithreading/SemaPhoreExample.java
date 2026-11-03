@@ -7,7 +7,7 @@ package DSA.multithreading;
 //	Can be Fair or Unfair
 // Guarantees fairness by maintaining a queue(FIFO),
 // which ensures that no thread waits indefinitely,
-// although this comes with a slight performance overhead.
+// although this comes with a slight springboot.performance overhead.
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;

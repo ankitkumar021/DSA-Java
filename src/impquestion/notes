@@ -19,7 +19,7 @@
 -Diff between @Component, @Bean and @Service  and can we replace with each other
 -What is Restful
 -What does stateless means
-- How to conduct performance and load testing and what are the steps needs to be
+- How to conduct springboot.performance and load testing and what are the steps needs to be
     followed to resolve issues
 -How to monitor the application
 -Jenkins & Bamboo CICD
@@ -30,7 +30,7 @@ what are the AWS services you are aware of ?
 What is the diff between EC2 and Lambda service and how you have used in your
     application ?
 What was the last feature you built in your project ?
-how you are are doing performance monitoring in your application ?
+how you are are doing springboot.performance monitoring in your application ?
 how to track issues in Splunk ?
 System design on flight service like Yatra.com
 ===============
@@ -138,7 +138,7 @@ General
  9. sprint planning what calls will you have
  10. @controller and @restController
  11. How many DBs are you using in application,
-    (Answered as mysql and Snowflake) related questions on query performance
+    (Answered as mysql and Snowflake) related questions on query springboot.performance
     improvement
  12. Asynchronous calls how do you handle
  13. Project specific questions
@@ -266,8 +266,8 @@ Panel:- Anand and KrishnaMoorthi Balaji
         and Factory design patterns
  11) How am I testing my backend application? Answered Unit testing with Mockito
         and Cucumber Integration Testing.
- 12) What performance monitoring tools were you using to check your application
-        performance.
+ 12) What springboot.performance monitoring tools were you using to check your application
+        springboot.performance.
  13) How were you monitoring your application logs?
  14) Are your aware of Jenkins or AWS CodePipeline? What are these? How have you
         set them up previously.
@@ -745,7 +745,7 @@ REST / Microservices / Spring Boot
 
 Performance, Testing, and DevOps
 
-21. How do you test high performance on your local machine?
+21. How do you test high springboot.performance on your local machine?
 
 22. How do you ensure your application is running smoothly without any issues?
 

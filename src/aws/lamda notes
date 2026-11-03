@@ -1,0 +1,432 @@
+
+#AWS lambda
+AWS is a serverless compute service that allows you to execute your application code
+without managing servers.
+
+    steps:upload your code ,configure the runtime and resources and aws executes your
+          code whenever an event triggers your lambda function.
+    ex:when customer uploads image-> s3(original image stored)->lambda triggered
+       you don't need to keep a server running and waiting for image uploads.lambda
+       executes when the configured event occurs.
+
+
+use case:
+1:event-driven
+2:short-lived
+3:stateless
+4:busty traffic
+5:does not require continuously running server.
+
+Enterprise use-case:
+
+
+3.1 Enterprise use cases:
+
+Use case 1: File processing
+
+    When a customer uploads a 500 MB file to S3, S3 triggers a Lambda function after
+    the upload completes.
+
+    Lambda can validate file metadata, initiate downstream processing,
+    and update file status.
+
+    For large-file processing, use S3 multipart upload and let Lambda orchestrate
+    or delegate processing rather than loading the entire file into memory.
+
+
+Use case 2: Background processing
+
+    An e-commerce application receives an order.
+
+    The Order Service puts an event into SQS. Lambda consumes the message
+    and performs independent work such as sending an order confirmation
+    or generating an invoice.
+
+
+Use case 3: Serverless REST APIs
+
+    A mobile application calls an API Gateway endpoint.
+
+    API Gateway invokes Lambda, which validates the request,
+    executes business logic, accesses DynamoDB, and returns a response.
+
+    Useful for lightweight APIs and unpredictable workloads.
+
+
+Use case 4: Scheduled jobs/cron job
+
+    Suppose an e-commerce company needs to expire pending orders after 30 minutes.
+
+    EventBridge can trigger a Lambda function periodically to identify
+    and expire eligible orders.
+
+    For high-volume order expiry, a delayed-message or scheduled-workflow
+    architecture may be more appropriate than repeatedly scanning the database.
+
+
+Use case 5: Database event processing
+
+    When DynamoDB records change, DynamoDB Streams can trigger Lambda.
+
+    Example: When an order status changes from CREATED to SHIPPED,
+    Lambda updates a search index or publishes a notification event.
+
+
+Use case 6: Infrastructure automation
+
+When an infrastructure event occurs, EventBridge can trigger Lambda to perform
+automated actions,such as cleaning up unused resources or processing CloudTrail events.
+
+
+4.2 Lambda integration with important AWS services
+AWS service	How Lambda is used:
+	S3	File/image processing
+	SQS	Background message processing
+	SNS	Notifications and fan-out
+	API Gateway	REST API backend
+	EventBridge	Scheduled and event-driven automation
+	DynamoDB Streams	Database change processing
+	Kinesis	Real-time stream processing
+	CloudWatch	Monitoring and automation
+	Step Functions	Orchestrating multiple Lambda operations
+
+7. How Lambda is used in real enterprise Java applications
+    In a large product company, you don't necessarily write every application
+    as a Lambda function.
+
+    You might have an existing Spring Boot microservice deployed on EKS,
+    and Lambda functions alongside it.
+
+For example:
+    SPRINGboot application(order/payment/inventory)
+    ->sqs(simple-queue-service)/sns(simple notification service)::here we can use
+     multiple lambda(for invoice/email/image/analytics)
+    ->storage/cloudwatch
+
+8.1 Lambda concurrency
+    Suppose your Lambda function receives 1,000 requests simultaneously.
+
+    Lambda can create multiple execution environments to handle concurrent invocations.
+
+Concurrency means:
+
+    Number of Lambda invocations executing at the same time.
+
+    Formula:
+    \[
+    Concurrency = Request\ Rate \times Average\ Duration
+    \]
+
+    Example:
+    - Incoming requests = 100 per second.
+    - Average execution time = 2 seconds.
+    \[
+    Concurrency = 100 \times 2 = 200
+    \]
+
+    You need approximately 200 concurrent executions to handle this workload without
+    building up a queue, assuming a steady arrival rate.
+
+    There are three important concepts.
+
+A. Reserved concurrency
+
+    You reserve capacity for a particular function and also establish its maximum
+    concurrency.
+
+    Example:
+    OrderNotificationLambda
+
+    Reserved concurrency = 100
+
+
+    This function can use up to 100 concurrent executions.
+
+Why is it useful?
+
+    Suppose you have five Lambda functions, and one of them suddenly receives
+    massive traffic.
+
+    Without concurrency controls, that function might consume available
+    account concurrency and affect other functions.
+
+    Reserved concurrency protects other workloads by limiting this function.
+
+B. Provisioned concurrency
+
+    AWS initializes a specified number of execution environments in advance.
+
+    Example:
+    PaymentValidationLambda
+
+    Provisioned concurrency = 20
+
+
+Why?
+
+    Suppose a payment API requires low and predictable startup latency.
+
+    Provisioned concurrency keeps 20 environments initialized and
+    ready to process requests.
+
+    It costs extra.
+
+C. On-demand concurrency
+
+    AWS creates execution environments as demand increases, subject to concurrency
+    quotas and scaling limits.
+
+    Type	Purpose
+    On-demand	Automatic scaling
+    Reserved	Reserve and cap concurrency
+    Provisioned	Pre-initialize environments
+
+#concepts like failure and duplicate same as in kafka
+
+#failure->use retry/if after retry push it in DLQ
+
+#duplicate -> dont use idempotency at lambda side /use at  consumer side
+
+Interview statement: "I never assume Lambda provides exactly-once business processing.
+I design consumers to be idempotent because duplicate event delivery is possible."
+
+#production level question:
+8.5 How do we handle database connections?
+    Suppose Lambda receives 2,000 simultaneous requests and every execution
+    environment opens a new connection to RDS.
+
+    Your database may run out of connections.
+
+    Example:Lambda concurrency = 2,000
+
+    Each execution environment
+    opens 1 database connection.
+
+    Total potential connections = 2,000
+
+    Solutions:
+    - Use reserved concurrency to cap Lambda execution.
+    - Use Amazon RDS Proxy(create a standby instance for resilent) to pool and
+        manage database connections.
+    - Reuse connections within execution environments where appropriate.
+    - Use connection timeouts.
+    - Monitor database connection count.
+    - Tune concurrency based on database capacity.
+
+9. Advantages and disadvantages of AWS Lambda
+    Advantages
+    Advantage	Explanation
+    No server management	AWS manages infrastructure
+    Auto scaling	Scales with incoming demand
+    Pay per use	Pay for requests and compute duration
+    Event-driven	Integrates with many AWS services
+    High availability	AWS manages execution infrastructure across Availability Zones
+    Independent deployment	Deploy individual functions
+    Faster development	Good for small, isolated tasks
+    Reduced operational overhead	No server patching or capacity management
+
+Disadvantages
+    Disadvantage	Explanation
+    Cold starts	Initial invocation can have additional latency
+    Execution time limit	Standard event functions are limited to 15 minutes
+    Stateless design	Persistent application state must be externalized
+    Concurrency limits	Account and function limits must be managed
+    Debugging complexity	Distributed event-driven systems can be difficult to
+    troubleshoot
+    Vendor dependency	Tightly coupled AWS integrations can increase migration
+    complexity
+    Database pressure	Sudden scaling can exhaust database connections
+    Cost unpredictability	Very high request volume or long execution times
+    can become expensive
+    Local testing complexity	AWS integrations require good integration testing
+
+    My architectural recommendation: Use Lambda when it reduces operational complexity
+    without introducing unnecessary distributed-system complexity.
+
+
+Interviewer: You already have 20 Spring Boot microservices running on EKS.
+Your manager asks you to migrate all services to Lambda to
+reduce infrastructure costs. Would you do it?
+
+Answer:
+
+    "No, I would not migrate everything blindly.
+
+    First, I would categorize services based on workload characteristics.
+
+    For example:
+    - Order Service: If it requires continuous API serving and
+        complex transaction handling, I might keep it on EKS.
+    - Notification Service: Independent asynchronous notification processing could
+        move to Lambda.
+    - Image Processing Service: S3-triggered Lambda is a good fit.
+    - Scheduled Cleanup Service: EventBridge with Lambda is suitable.
+    - Long-running data processing: ECS/EKS or an appropriate data processing
+        service might be better.
+
+#Interview question:
+1:What are Lambda triggers?
+
+->Triggers are events or services that invoke Lambda,
+    such as S3, API Gateway, SQS, SNS, EventBridge, and DynamoDB Streams.
+
+2:What is the difference between cold start and warm start?
+
+->Cold start requires environment initialization. Warm start reuses an
+    existing initialized environment.
+
+3:What is Lambda concurrency?
+
+->The number of function invocations executing simultaneously.
+
+4:What is the maximum execution time?
+
+->15 minutes for standard Lambda event functions.
+
+5:Does Lambda guarantee exactly-once execution?
+
+->No. Duplicate processing can occur. We should implement idempotency
+
+Use reserved concurrency, RDS Proxy, connection pooling, and
+ database-aware concurrency limits.
+
+6:What happens when Lambda reaches its concurrency limit?
+
+	Additional invocations can be throttled. The caller or event source
+	handles retries according to its invocation model.
+	We should monitor throttling and configure appropriate concurrency.
+
+Scenario 3: Lambda is taking 5 seconds for the first request and 100 ms for
+            subsequent requests. How do you solve it?
+Expected answer:
+
+	I would investigate cold-start latency.
+
+	For Java, I would:
+	- Reduce dependency loading.
+	- Optimize static initialization.
+	- Avoid unnecessary framework initialization.
+	- Consider SnapStart.
+	- Use provisioned concurrency if strict startup latency is required.
+	I would measure initialization duration before choosing an optimization.
+
+
+Scenario 5: Lambda is creating 1,000 database connections and RDS is becoming
+            unavailable. What would you do?
+Expected answer:
+
+	I would:
+	1. Reduce reserved concurrency.
+	2. Introduce RDS Proxy.
+	3. Reuse database connections appropriately.
+	4. Configure connection timeouts.
+	5. Monitor connection count and query latency.
+	6. Consider asynchronous processing through SQS.
+	The root cause is that Lambda is scaling independently of the
+	database's connection capacity.
+
+Scenario 6: Your Lambda function takes 20 minutes to process a file.
+            What would you do?
+Expected answer:
+
+	Standard Lambda has a 15-minute execution limit.
+
+	I would divide the file into smaller chunks and process them independently
+	using SQS and Lambda.
+
+	If processing requires complex coordination, I would use Step Functions.
+
+	If it is a continuous long-running job, I would consider ECS/EKS or
+	a suitable batch-processing service.
+
+
+Scenario 7: A Lambda function fails repeatedly. How do you prevent infinite retries?
+Expected answer:
+
+    I would configure:
+    - Appropriate retry policies.
+    - SQS redrive policy.
+    - Maximum receive count.
+    - Dead Letter Queue.
+    - CloudWatch alarms.
+    I would investigate the failed message and support controlled replay after
+    fixing the issue.
+
+what is diff between reserved and provisioned concurrency in aws:
+
+	Reserved concurrency:
+		Reserved concurrency is an AWS Lambda feature that guarantees a specific
+		number of concurrent execution environments for a single function
+		while simultaneously acting as a hard ceiling on its maximum scaling
+		capacity. Configuring reserved concurrency is entirely free of charge.
+		It dedicates a fixed portion of your regional pool (1000 execution)
+		exclusively that function.
+		use-case:To solve account level throttling.
+
+	Provisioned concurrency:
+		Provisioned concurrency pre-initialize execution ,
+		so containers are warm and ready instantly.
+		use-case:Burst limit throttling.
+
+
+
+Feature	Reserved Concurrency	Provisioned Concurrency
+Primary Goal	Limits execution scale & guarantees a dedicated slice of the regional pool.	Eliminates Lambda cold start latency.
+How it Works	Sets boundaries inside the existing regional concurrency limits.	Pre-initializes execution environments to respond instantly.
+Cost	Free.	Paid (Incurs explicit extra charges for uptime).
+
+Scenario 8: Your company has three Lambda functions. One function receives
+            massive traffic and affects other functions. How do you prevent this?
+	Expected answer:
+	I would use reserved concurrency to isolate and cap the noisy function.
+
+Scenario 11: Your Lambda function is getting throttled even though the
+             application has low traffic. Why?
+Expected answer:
+
+	I would investigate:
+	- Reserved concurrency being too low.
+	- Other functions consuming account concurrency.
+	- A burst of asynchronous events.
+	- Long-running invocations occupying execution environments.
+	- Event source scaling configuration.
+	I would check CloudWatch Throttles and ConcurrentExecutions metrics.
+
+Scenario 12: How would you design a payment notification system using Lambda?
+Expected answer:
+
+	I would use this architecture:
+
+	Payment Service
+		  |
+		  v
+	PaymentCompleted Event
+		  |
+		  v
+		 SNS
+		  |
+		  v
+		 SQS
+		  |
+		  v
+	Lambda Notification Handler
+		  |
+		  v
+	Email / SMS Provider
+
+
+	I would implement:
+	- Idempotency.
+	- Retry policies.
+	- DLQ.
+	- Monitoring.
+	- Correlation IDs.
+	- Provider rate limiting.
+	I would keep payment authorization and the actual financial transaction in the Payment Service,
+	rather than putting all payment logic inside a notification Lambda.
+
+
+
+
+
+

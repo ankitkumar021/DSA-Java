@@ -1,0 +1,42 @@
+
+What Is Service Discovery?
+
+A microservices-based application typically runs in virtualized or
+ containerized environments.
+The number of instances of a service and its locations changes dynamically.
+We need to know where
+these instances are and their names to allow requests to arrive at the
+target microservice. This is where tactics such as Service Discovery come into play.
+
+The Service Discovery mechanism helps us know where each instance is located.
+In this way,
+a Service Discovery component acts as a registry in which the addresses
+of all instances are tracked.
+The instances have dynamically assigned network paths. Consequently,
+if a client wants to make a request to a service,
+it must use a Service Discovery mechanism.
+
+The Need for Service Discovery?
+A microservice needs to know the location (IP address and port)
+of every service it communicates with.
+If we don’t employ a Service Discovery mechanism, service locations
+become coupled, leading to a system that’s difficult to maintain.
+We could wire the locations or inject them via configuration in a
+traditional application, but it isn’t recommended in a modern cloud-based
+application of this kind
+
+Service Discovery Implementations
+1:Client-Side Service Discovery->
+When using Client-Side Discovery, the Service Consumer is responsible for
+determining the network locations of available service instances
+and load balancing requests between them. The client queries the Service Register.
+Then the client uses a load-balancing algorithm to choose one of the available
+service instances and performs a request.
+
+2:Server-Side Service Discovery->
+The alternate approach to Service Discovery is the Server-Side Discovery model,
+which uses an intermediary that acts as a Load Balancer. The client makes a
+request to a service via a load balancer that acts as an orchestrator.
+ The load balancer queries the Service Registry and routes each request to
+ an available service instance.
+

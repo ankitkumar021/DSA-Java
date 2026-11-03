@@ -1,0 +1,502 @@
+ec2:
+
+1. What is Amazon EC2?
+Answer:
+Amazon EC2 (Elastic Compute Cloud) is a web service that provides resizable,
+scalable virtual servers (instances) in the AWS cloud. It allows you to launch,
+configure, and manage servers without owning physical hardware.
+
+2. What are EC2 instance types?
+Answer:
+EC2 instances are grouped into families based on use case:
+
+General Purpose (e.g., t3, m6g)
+
+Compute Optimized (e.g., c6g)
+
+Memory Optimized (e.g., r6g)
+
+Storage Optimized (e.g., i3)
+
+GPU/Accelerated (e.g., p3, g4)
+
+3. What is an AMI?
+Answer:
+An AMI (Amazon Machine Image) is a template used to create EC2 instances.
+It contains the OS, application server, and applications.
+
+4. What are Security Groups in EC2?
+Answer:
+Security Groups act as virtual firewalls for your EC2 instances.
+They control inbound and outbound traffic using allow rules (no deny rules).
+
+5. What’s the difference between stopping and terminating an EC2 instance?
+Action	What It Does	Data Loss
+Stop	Shuts down instance, keeps EBS volumes	❌ No
+Terminate	Deletes instance and EBS (if not set to keep)	✅ Yes
+
+6. What is EBS? How is it used with EC2?
+Answer:
+EBS (Elastic Block Store) is a persistent block storage that you can attach to EC2.
+It stores your OS, logs, and data.
+EBS volumes can persist beyond the life of an instance (if configured).
+
+7. What are EC2 key pairs?
+Answer:
+Key pairs are SSH credentials used to securely access EC2 instances.
+The private key stays with you, and the public key is stored in AWS.
+
+8. What is a spot instance vs on-demand instance?
+Instance Type	Description	Cost
+On-Demand	Pay by the second/hour	High
+Reserved	Commit 1–3 years for discount	Lower
+Spot	Use unused capacity at big discounts	Lowest
+Savings Plan	Commit to spend a certain amount per hour	Flexible
+
+9. How do you ensure high availability for EC2?
+Answer:
+
+Use Auto Scaling Groups to maintain instance count
+
+Spread instances across multiple Availability Zones
+
+Use Elastic Load Balancer (ELB) for traffic distribution
+
+10. What is Elastic IP in EC2?
+Answer:
+An Elastic IP is a static, public IPv4 address you can assign to an EC2 instance.
+ Useful when you need a fixed IP address for DNS or APIs.
+
+🧠 Bonus Technical/Scenario-Based Questions
+11. Can you attach multiple EBS volumes to one EC2 instance?
+Yes. You can attach multiple EBS volumes and mount them separately
+like additional drives.
+
+12. How do you scale EC2 automatically?
+Use Auto Scaling Groups that launch/terminate EC2 instances based on metrics
+(CPU, memory, load balancer health, etc.).
+
+13. How do you secure EC2 instances?
+Use Security Groups and NACLs
+
+Use IAM roles (never embed credentials in code)
+
+Enable VPC, private subnets, or bastion hosts
+
+Use encrypted EBS volumes and TLS for data
+
+14. What happens to the data on instance store if you stop or terminate the EC2?
+Instance store data is lost when you stop or terminate the instance. It's ephemeral.
+
+15. How do you backup an EC2 instance?
+Create an EBS snapshot, or AMI for full backup (including system state and storage).
+
+✅ Summary of Topics to Prepare from EC2
+Topic	Importance
+Instance types & pricing	⭐⭐⭐⭐
+AMIs & bootstrapping	⭐⭐⭐⭐
+Security Groups & SSH	⭐⭐⭐⭐
+EBS storage	⭐⭐⭐⭐
+Auto Scaling & Load Balancing	⭐⭐⭐⭐
+Backup & Recovery	⭐⭐⭐
+VPC integration	⭐⭐⭐
+
+
+Basics and Fundamentals:
+What is Amazon EC2?
+
+Amazon EC2 (Elastic Compute Cloud) is a web service that provides resizable
+compute capacity in the cloud. It allows users to rent virtual servers
+to run applications.
+What are the different types of instances in EC2?
+
+EC2 offers various instance types optimized for different use cases,
+such as general-purpose, compute-optimized, memory-optimized, storage-optimized, etc.
+Explain the difference between On-demand and Reserved instances.
+
+On-demand instances allow users to pay for compute capacity by the hour with
+no long-term commitments,
+while Reserved instances offer significant savings if you commit
+to a specific instance configuration for a period.
+
+
+Instance Management:
+How can you launch EC2 instances?
+
+Instances can be launched via the AWS Management Console,
+CLI (Command Line Interface), or using SDKs (Software Development Kits).
+What is an Amazon Machine Image (AMI)?
+
+An AMI is a pre-configured template that contains the software
+configuration needed to launch an EC2 instance.
+It includes the operating system, applications, libraries, and settings.
+How do you secure an EC2 instance?
+
+Security can be enhanced by configuring security groups,
+which act as a virtual firewall, setting up Network Access Control Lists (NACLs),
+using IAM roles, and regularly updating patches and security groups.
+
+
+
+Storage and Networking:
+Explain Elastic Block Store (EBS) and Instance Store.
+
+EBS provides persistent block-level storage volumes for use with EC2 instances,
+while Instance Store provides temporary block-level storage that is lost when
+the instance is stopped or terminated.
+What is a VPC (Virtual Private Cloud)?
+
+A VPC is a logically isolated section of the AWS Cloud where users can
+launch resources in a virtual network that they define.
+How do you connect to an EC2 instance?
+
+You can connect to an EC2 instance using SSH (Secure Shell) for Linux instances
+or RDP (Remote Desktop Protocol) for Windows instances.
+
+
+
+
+
+
+
+
+
+Auto Scaling and Load Balancing:
+What is Auto Scaling in EC2?
+
+Auto Scaling allows you to automatically adjust the number of EC2 instances in response to changes in demand, ensuring optimal performance at the lowest cost.
+Explain Elastic Load Balancing (ELB).
+
+ELB automatically distributes incoming application traffic across multiple targets,
+such as EC2 instances, to ensure high availability and fault tolerance.
+
+
+
+Troubleshooting and Monitoring:
+How do you troubleshoot an unreachable EC2 instance?
+
+Troubleshooting can involve checking security group rules,
+verifying network configurations, reviewing system logs,
+and ensuring that the instance is running.
+What monitoring tools does AWS provide for EC2 instances?
+
+AWS offers CloudWatch, which provides monitoring and visibility into EC2 instances,
+including CPU utilization, network traffic, disk usage, etc.
+
+
+
+
+High Availability and Disaster Recovery:
+How can you achieve high availability for EC2 instances?
+
+High availability can be achieved by deploying instances across multiple
+Availability Zones (AZs), using Auto Scaling, and configuring Elastic Load Balancers.
+Explain the process of creating a backup for EC2 instances.
+
+Backups can be created by taking snapshots of EBS volumes or by using AWS Backup,
+which automates the process of backing up data across multiple services.
+
+
+
+
+
+
+
+Can you describe a situation where you optimized EC2 instances for cost
+savings or performance improvements?
+
+
+Certainly! Here's a strong, structured way to answer the interview question:
+
+"Can you describe a situation where you optimized EC2 instances for cost
+savings or performance improvements?"
+
+✅ Sample Answer (Customize to your experience)
+"In one of my previous projects, we had a microservices-based application
+running on multiple EC2 instances behind an Elastic Load Balancer.
+Over time, we noticed two major issues:
+
+Underutilized instances during off-peak hours, leading to wasted cost.
+
+Performance bottlenecks on some services during traffic spikes.
+
+🔍 Step 1: Monitoring and Analysis
+I started by analyzing instance usage using:
+
+Amazon CloudWatch metrics (CPU, memory, network)
+
+AWS Cost Explorer to identify the most expensive resources
+
+Trusted Advisor to flag underutilized instances
+
+🛠 Step 2: Cost Optimization Techniques Applied
+Here’s what I did to optimize both cost and performance:
+
+✅ 1. Right-Sizing Instances
+Replaced several over-provisioned m5.xlarge instances with smaller t3.medium or
+t4g.medium instances.
+
+For memory-heavy services, upgraded to memory-optimized r6g.large instances.
+
+✅ 2. Switched to Auto Scaling
+Instead of keeping a fixed number of EC2s, I set up an Auto Scaling Group
+based on CPU and network metrics.
+
+This helped scale down during off-peak hours and scale up when traffic increased.
+
+✅ 3. Use of Spot Instances for Non-Critical Jobs
+For background batch jobs and nightly data processing, I used EC2 Spot Instances,
+saving up to 70% of cost.
+
+✅ 4. Reserved Instances for Stable Workloads
+For services that ran 24/7 (e.g., backend APIs), I purchased Reserved
+Instances with 1-year commitment, reducing compute cost by 30–40%.
+
+🚀 Step 3: Results
+As a result of these optimizations:
+
+Overall EC2 costs dropped by ~45%
+
+Application performance improved due to better resource fit
+
+Scaling became dynamic, reducing manual overhead
+
+Deployment pipelines were adjusted to use Spot capacity pools where possible
+
+
+---------------------------------------------------------------------------------
+
+✅ 1. What is Amazon EC2?
+
+Amazon EC2 (Elastic Compute Cloud) is a virtual server in the AWS cloud.
+In the context of a Spring Boot application,
+ EC2 is used to host and run your application using the java -jar app.jar command.
+  You get full control over the OS, networking, security, and runtime environment.
+
+✅ 2. Purpose and Use Cases of EC2
+
+Purpose: To provide scalable, resizable compute capacity.
+Use Cases (for Spring Boot apps):
+
+Hosting REST APIs and web apps
+
+Running batch jobs and background workers
+
+CI/CD runners (like Jenkins agents)
+
+Hosting Spring Boot microservices in clusters
+
+✅ 3. What are EC2 instance types?
+
+EC2 instances are categorized by use case:
+
+Type	Example	Use in Spring Boot
+General Purpose	t3, t4g, m5	Ideal for typical web apps, REST APIs
+Compute Optimized	c5, c6g	Good for CPU-heavy workloads
+ (e.g., JSON parsing, encryption)
+Memory Optimized	r5, x1e	Useful for apps with large memory use
+(e.g., caching, large datasets)
+Storage Optimized	i3, d2	For I/O-intensive apps (e.g., Spring + Elasticsearch)
+Accelerated Computing	p3, inf1	For ML/AI with Spring integrations
+ (e.g., TensorFlow inference)
+✅ 4. What is the difference between EC2 and Lambda?
+Feature	EC2	Lambda
+Control	Full OS and app control	Fully managed
+Billing	Pay per hour/second	Pay per request & duration
+Use with Spring Boot	Full apps (java -jar)	Lightweight handlers
+ (e.g., for S3 events)
+Best for	Monolithic or microservices	Event-driven functions
+✅ 5. What is the use of Amazon Lightsail?
+
+Lightsail is a simplified version of EC2 for small applications. It includes:
+
+A VM, storage, DNS, and networking in one package
+
+Simple pricing
+
+Ideal for beginners or small-scale Spring Boot apps or personal projects
+
+✅ 6. What is Auto Scaling in AWS and why is it important?
+
+Auto Scaling automatically adjusts the number of EC2 instances based on demand
+(e.g., CPU, memory).
+
+Why it matters in Spring Boot apps:
+
+Ensures high availability and performance
+
+Reduces cost by scaling down during low traffic
+
+Works well with Load Balancers for horizontal scaling
+
+✅ 7. What are the different EC2 purchasing options?
+Option	Description	Use Case
+On-Demand	Pay per second	Dev/test or unpredictable workloads
+Reserved	1 or 3-year commitment	Long-running, stable workloads
+Spot	Use spare capacity (up to 90% off)	Non-critical, fault-tolerant workloads
+Savings Plans	Flexible pricing over time	Any consistent usage
+(cheaper than On-Demand)
+✅ 8. What is the difference between EBS and Instance Store?
+Feature	EBS (Elastic Block Store)	Instance Store
+Persistence	Data persists after instance stop/restart
+Temporary – data lost on stop/terminate
+Use	Root volumes, databases, app data	Temporary storage like caching or logs
+Spring Boot Usage	Store JAR, logs, database
+Temporary build artifacts or scratch space
+
+
+✅ 1. What are Spot Instances and when would you use them?
+
+Answer:
+Spot Instances let you use spare EC2 capacity at up to 90% lower cost
+than On-Demand pricing. They can be terminated at any time when AWS
+needs the capacity back.
+
+Use with Spring Boot:
+
+Cost-effective for stateless microservices, batch processing, or CI/CD builds
+
+Combine with Auto Scaling Groups to automatically replace interrupted instances
+
+✅ 2. What is an EC2 AMI (Amazon Machine Image)?
+
+Answer:
+An AMI is a snapshot of an EC2 instance that includes:
+
+OS
+
+App binaries (e.g., Spring Boot JAR)
+
+Configuration
+
+Usage:
+Create a custom AMI with your Spring Boot app pre-installed for
+consistent deployments across environments.
+
+✅ 3. How do you create and use a custom AMI?
+
+Answer:
+
+Launch and configure an EC2 instance (install Java, app JAR, configs)
+
+Stop the instance (optional)
+
+Create an AMI from the instance via the console or CLI
+
+Launch new instances using this AMI
+
+Useful for:
+
+Immutable deployments
+
+Fast scaling with pre-configured Spring Boot services
+
+✅ 4. What is EC2 User Data and how is it used?
+
+Answer:
+User Data is a bootstrapping script (bash or cloud-init) that
+runs once on first boot of the EC2 instance.
+
+Example (Spring Boot JAR deployment):
+
+#!/bin/bash
+sudo yum update -y
+sudo yum install java-17-openjdk -y
+wget https://your-s3-bucket/app.jar -O /home/ec2-user/app.jar
+java -jar /home/ec2-user/app.jar > /var/log/app.log &
+
+
+Used to automate deployments on new instances.
+
+✅ 5. What is an Elastic IP and when should you use it?
+
+Answer:
+An Elastic IP is a static public IP address in AWS.
+
+Use Cases:
+
+Assign a fixed IP to your Spring Boot app (for DNS, firewall rules)
+
+Retain the IP across instance restarts or replacements
+
+Especially useful when not using Load Balancers
+
+✅ 6. How does Elastic Load Balancing (ELB) work with EC2 Auto Scaling?
+
+Answer:
+
+ELB distributes incoming traffic to multiple EC2 instances
+
+Auto Scaling dynamically adds/removes instances
+
+Together, they ensure high availability and fault tolerance
+
+Spring Boot:
+You can deploy multiple instances of your app, and ELB ensures traffic
+is balanced across healthy instances.
+
+✅ 7. What are the differences between ALB, NLB, and CLB?
+Load Balancer	Description	Best For
+ALB (Application)	Layer 7 (HTTP/S), path-based routing
+Spring Boot REST APIs, microservices
+NLB (Network)	Layer 4 (TCP), ultra-low latency	High-performance apps, gRPC
+CLB (Classic)	Legacy load balancer	Not recommended for new apps
+✅ 8. How do you secure an EC2 instance?
+
+Answer:
+
+Security Groups:
+
+Virtual firewall to allow/deny traffic
+
+Open only necessary ports (e.g., 22 for SSH, 80/443 for HTTP)
+
+Key Pairs:
+
+Use .pem file for SSH authentication
+
+Never expose private keys publicly
+
+For Spring Boot:
+
+Allow only 8080 or proxy through 80/443 via NGINX or ALB
+
+Disable root login; use IAM roles for AWS access
+
+✅ 9. What is the difference between horizontal and vertical scaling in EC2?
+Scaling Type	Description	Spring Boot Use Case
+Horizontal	Add more EC2 instances	Microservices, stateless apps
+Vertical	Increase instance size (CPU/RAM)	Monoliths, DBs, legacy apps
+
+AWS Identity and Access Management (IAM) roles are entities you create and
+assign specific permissions to that allow trusted identities
+such as workforce identities and applications to perform actions in AWS
+
+| Concept      | Description                                                                                    |
+| ------------ | ---------------------------------------------------------------------------------------------- |
+| **Users**    | Individual accounts for people or applications (e.g., a developer or Spring Boot service)      |
+| **Groups**   | Collections of users that share permissions                                                    |
+| **Roles**    | Identities with **temporary credentials** used by services or applications (e.g., EC2, Lambda) |
+| **Policies** | JSON documents that define **permissions** (allow or deny actions on AWS resources)            |
+
+Example IAM Policy (Read-only access to S3)
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::your-bucket-name/*"
+    }
+  ]
+}
+
+Best Practices
+
+❌ Never hardcode AWS credentials in your code
+
+✅ Use IAM roles for EC2, Lambda, ECS, etc.
+
+✅ Follow principle of least privilege (only give necessary permissions)
+
+✅ Enable MFA for console users

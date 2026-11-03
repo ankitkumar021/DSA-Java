@@ -1,0 +1,36 @@
+
+a) Get All Pods in a Namespace
+kubectl get pods -n <namespace>
+
+b) Get Pods by Name (or Partial Name)
+kubectl get pods | grep <pod-name-part>
+
+
+a) Delete by Exact Pod Name
+kubectl delete pod <pod-name> -n <namespace>
+kubectl delete pod my-app-5f9c7d8d9d-abcde -n default
+
+1. Get Logs of a Pod
+kubectl logs <pod-name> -n <namespace>
+kubectl logs my-app-7d8c9f8b6d-xyz12 -n dev
+
+
+What kubectl describe Does
+
+It shows detailed information about a Kubernetes resource
+ (like Pod, Deployment, Service, Node, etc.).
+
+Unlike kubectl get, which shows summary info, kubectl describe shows events,
+conditions, labels, annotations, volumes, status, etc.
+
+1. Describe a Pod
+kubectl describe pod <pod-name> -n <namespace>
+👉 Useful for checking:
+
+Pod’s container images
+
+Node it’s running on
+
+Conditions (Ready, Running, CrashLoopBackOff)
+
+Events (like scheduling errors, failed pulls)

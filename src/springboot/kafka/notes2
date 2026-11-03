@@ -1,0 +1,896 @@
+   @Override
+    public void onMessage(ConsumerRecord<String, Object> consumerRecord, Consumer<?, ?> consumer) {
+        ProjectInterventionEvent projectInterventionEvent = mapper.convertValue(consumerRecord.value(), ProjectInterventionEvent.class);
+        MDC.put(LoggingConfiguration.DEFAULT_MDC_UUID_TOKEN_KEY, projectInterventionEvent.getBreadcrumbId());
+        LOGGER.info("Received ProjectIntervention event instance: {}", projectInterventionEvent);
+        try {
+           projectInterventionMessageProcessor.processMessage(projectInterventionEvent);
+        } catch (Exception ex) {
+            LOGGER.error("Exception while ProjectIntervention event process {}", ex.getMessage());
+            throw ex;
+        }
+        consumer.commitSync();
+        LOGGER.info("ProjectIntervention event processed successfully");
+    }
+
+	  @Override
+    public void onMessage(ConsumerRecord<String, IncomingEvent> consumerRecord, Consumer<?, ?> consumer) {
+        Event event = consumerRecord.value().getEvent();
+        MDC.put(LoggingConfiguration.DEFAULT_MDC_UUID_TOKEN_KEY, event.getBreadcrumbId());
+        LOGGER.info("Received Intervention Strategy event instance: {}", event);
+        try {
+            interventionStrategyMessageProcessor.processMessage(consumerRecord.value());
+        } catch (Exception ex) {
+            LOGGER.error("Exception while Intervention Strategy event process", ex);
+            throw ex;
+        }
+        consumer.commitSync();
+        LOGGER.info("Intervention Strategy event processed successfully");
+    }
+
+
+pods to consumer ratio:
+
+
+pods to partition ratio:
+| Case                               | Description                            | Result                                                 |
+| ---------------------------------- | -------------------------------------- | ------------------------------------------------------ |
+| **1:1 (ideal balance)**            | Each pod handles exactly one partition | Perfect load balance, best throughput, easiest scaling |
+| **>1 (more partitions than pods)** | Each pod handles multiple partitions   | OK — still fine, but each pod’s load increases         |
+| **<1 (more pods than partitions)** | Some pods stay idle                    | ❌ Waste of resources, no gain in throughput            |
+
+✅ Rule of Thumb
+
+Always ensure
+Number of pods ≤ Number of partitions
+
+| Partitions | Pods | Partition:Pod Ratio | Result                                  |
+| ---------- | ---- | ------------------- | --------------------------------------- |
+| 10         | 10   | 1:1                 | ✅ Ideal                                 |
+| 12         | 6    | 2:1                 | ⚙️ Each pod handles 2 partitions — fine |
+| 6          | 12   | 0.5:1               | ❌ 6 pods idle — waste of compute        |
+| 24         | 8    | 3:1                 | ✅ Good if pods have enough CPU/memory   |
+
+| Scaling Type                  | Action                                     | Effect                         |
+| ----------------------------- | ------------------------------------------ | ------------------------------ |
+| **Add more partitions**       | When you want higher parallelism in future | Allows you to scale pods later |
+| **Add more pods**             | Until pod count = partition count          | Increases throughput linearly  |
+| **More pods than partitions** | No improvement — some pods idle            | Avoid this                     |
+
+| System Type                     | Suggested Ratio                              | Notes                                       |
+| ------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| **Kafka consumer microservice** | 1 partition : 1 pod (best) <br> or up to 3:1 | Each pod can handle a few partitions safely |
+| **CPU-bound tasks**             | 1:1 or 2:1                                   | Avoid overloading pods                      |
+| **I/O-bound tasks**             | 3:1 or even 5:1                              | Each pod can handle more partitions easily  |
+
+🧩 Example Setup
+
+Kafka topic: orders
+Partitions = 15
+Each pod runs 1 consumer
+
+👉 If you deploy 15 pods, you get:
+
+1 consumer per pod
+
+1:1 ratio
+
+Max throughput, even load distribution
+
+If you deploy 5 pods, ratio = 3:1
+
+Each pod handles 3 partitions — still good.
+
+If you deploy 20 pods, ratio = 0.75:1
+
+5 pods will remain idle — inefficient.
+
+
+what we consider while setup consumer vs pods ratio or partition vs pods ratio?
+
+🧩 The Core Principle
+
+When designing your system, you should primarily consider the ratio of partitions to pods, not consumers to pods.
+
+Here’s why:
+
+🧠 Kafka partitions define the upper limit of parallelism.
+Consumers (and pods that host them) are just execution units that utilize that parallelism.
+
+| Ratio                     | What it controls                               | When it matters most                      |
+| ------------------------- | ---------------------------------------------- | ----------------------------------------- |
+| **Partition : Pod ratio** | Determines **maximum achievable parallelism**  | During scaling and throughput tuning      |
+| **Consumer : Pod ratio**  | Determines **how much each pod can multitask** | During resource optimization inside a pod |
+
+🧠 2. Why Partition vs Pod is the primary consideration
+🔹 Kafka allows one consumer per partition (per consumer group)
+
+So even if you create 10 consumers per pod but have only 5 partitions, only 5 consumers will actually receive messages — the rest will stay idle.
+Max parallelism = number of partitions
+That’s why partition-to-pod ratio is the key driver for how many pods you should run.
+
+
+
+⚙️ 3. The Right Design Flow
+
+When setting up your system:
+
+Step 1: Determine the total partitions per topic
+
+Based on expected throughput and parallelism.
+e.g., 12 partitions.
+
+Step 2: Decide how many consumers each pod can efficiently run
+
+Usually 1 consumer thread per core (for CPU-bound) or 2–4 threads per core (for I/O-bound).
+
+Step 3: Compute pods needed:
+
+Total pods = total partitions / consumers per pod
+✅ Example:
+
+12 partitions
+
+3 consumers per pod
+→ Need 4 pods → Partition:Pod ratio = 3:1
+
+| Focus                         | Why                                                               |
+| ----------------------------- | ----------------------------------------------------------------- |
+| **👉 Partition vs Pod ratio** | Primary scaling dimension — partitions define maximum concurrency |
+| **Consumer vs Pod ratio**     | Secondary — determines efficiency of each pod’s resource usage    |
+
+
+
+
+advance:
+🔹 3️⃣ Partition vs Pod Ratio
+
+| Question                                                 | What it Tests            | Tip for Answer                                                                     |
+| -------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------- |
+| **What is an ideal partition-to-pod ratio?**             | Understanding of balance | Usually 1:1 or slightly higher (2:1 or 3:1). Never have more pods than partitions. |
+| **What happens if you have fewer pods than partitions?** | Load distribution        | Each pod handles multiple partitions — still fine if pods have enough capacity.    |
+| **What happens if you have more pods than partitions?**  | Resource efficiency      | Some pods will stay idle — wasted CPU/memory.                                      |
+| **How do you handle uneven partition load?**             | Rebalancing & scaling    | Use Kafka partitioning strategy or rebalance topics.                               |
+
+🔹 2️⃣ Consumer vs Pod Ratio
+| Question                                                                        | What it Tests                           | Tip for Answer                                                                                     |
+| ------------------------------------------------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Should you focus on consumer vs pod or partition vs pod ratio when scaling?** | Prioritization of scaling strategy      | Always focus on *partition : pod* ratio first, because partitions define max concurrency.          |
+| **What happens if you run multiple consumers in one pod?**                      | Thread management and JVM understanding | It can improve throughput (I/O-bound), but you must ensure thread-safety and CPU/memory isolation. |
+| **How do you decide the number of consumers per pod?**                          | Resource tuning                         | Depends on CPU cores, I/O vs CPU workload, and expected message rate. Usually 1–4 per pod.         |
+
+
+🔹 3️⃣ Partition vs Pod Ratio
+| Question                                                 | What it Tests            | Tip for Answer                                                                     |
+| -------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------- |
+| **What is an ideal partition-to-pod ratio?**             | Understanding of balance | Usually 1:1 or slightly higher (2:1 or 3:1). Never have more pods than partitions. |
+| **What happens if you have fewer pods than partitions?** | Load distribution        | Each pod handles multiple partitions — still fine if pods have enough capacity.    |
+| **What happens if you have more pods than partitions?**  | Resource efficiency      | Some pods will stay idle — wasted CPU/memory.                                      |
+| **How do you handle uneven partition load?**             | Rebalancing & scaling    | Use Kafka partitioning strategy or rebalance topics.                               |
+
+
+🔹 5️⃣ System Design / Scenario-based
+| Scenario                        | Example Question                                                                               | What to Highlight                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **High throughput Kafka topic** | “You have a topic with 12 partitions and you want to increase throughput — what do you scale?” | Add more pods/consumers until total consumers = partitions. Then increase partitions.  |
+| **Uneven load**                 | “Some partitions are heavily loaded, others not — what do you do?”                             | Use custom partitioner or increase partitions.                                         |
+| **Slow consumers**              | “Consumer lag is increasing — what actions will you take?”                                     | Scale pods, increase consumer threads, tune fetch/min/max bytes, commit interval, etc. |
+| **K8s scaling**                 | “How do you scale Kafka consumers automatically?”                                              | KEDA (Kafka Scaler) with lag-based triggers.                                           |
+
+🔹 4️⃣ Kubernetes Scaling + Consumers:
+| Question                                                             | What it Tests               | Tip for Answer                                                           |
+| -------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------------------------ |
+| **How would you auto-scale Kafka consumers in Kubernetes?**          | Practical system design     | Use HPA or KEDA (based on CPU usage or Kafka consumer lag).              |
+| **What metric would you monitor to scale consumers?**                | Observability               | Kafka consumer lag, throughput, and partition assignment metrics.        |
+| **What happens when you scale pods up or down in a consumer group?** | Kafka rebalancing knowledge | Kafka rebalances partition assignments → temporary pause in consumption. |
+| **How can you minimize rebalancing impact?**                         | Operational experience      | Use cooperative rebalancing (Incremental Cooperative Sticky Assignor).   |
+
+🔹 6️⃣ Advanced / Senior-Level Questions
+| Question                                                                                    | Focus |
+| ------------------------------------------------------------------------------------------- | ----- |
+| How does Kafka rebalance work when new pods are added?                                      |       |
+| What is cooperative rebalancing and why is it better?                                       |       |
+| How do you ensure exactly-once processing with multiple consumers?                          |       |
+| How do you tune max.poll.interval.ms, max.poll.records, or fetch.min.bytes for performance? |       |
+| How do you handle consumer lag when pods crash or restart?                                  |       |
+| How would you partition data for a high-throughput system (e.g., by key, hash, or region)?  |       |
+| How does KEDA differ from HPA in Kafka-based systems?                                       |       |
+
+📊 4️⃣ Throughput per Pod (Kafka on Kubernetes)
+Each pod runs one or more consumers.
+
+Throughput per Pod = (Messages processed by pod) / Time taken
+
+Total system throughput:
+Total Throughput = (Throughput per Pod) × (Number of Pods)
+
+
+
+
+🧮 Example
+| Parameter          | Value      |
+| ------------------ | ---------- |
+| Messages processed | 120,000    |
+| Time taken         | 60 seconds |
+| Pods               | 4          |
+
+Throughput per pod = 120,000 / 60 = 2,000 msg/s
+Total throughput = 2,000 × 4 = 8,000 msg/s
+
+
+if you latency than calculate throughput:
+✅ Example:
+
+Avg processing latency = 10 ms = 0.01 s
+
+Consumers = 20
+→ Throughput = 20 / 0.01 = 2000 msg/sec
+
+| Type                 | Formula                                      | Example               |
+| -------------------- | -------------------------------------------- | --------------------- |
+| **Single consumer**  | msgs / sec = N / time                        | 5000 / 5 = 1000 msg/s |
+| **Multi-pod system** | total throughput = throughput per pod × pods | 2000 × 4 = 8000 msg/s |
+| **Latency-based**    | throughput = parallel threads / avg latency  | 10 / 0.02 = 500 msg/s |
+
+🔧 6️⃣ How to Improve Throughput:
+| Layer          | Optimization                                                   |
+| -------------- | -------------------------------------------------------------- |
+| **Kafka**      | Increase partitions; use async commits; adjust fetch.max.bytes |
+| **Consumer**   | Increase max.poll.records, parallelize processing              |
+| **Pod**        | Add more pods (horizontal scale)                               |
+| **Code**       | Use non-blocking I/O, reduce serialization overhead            |
+| **Kubernetes** | Use autoscaling based on lag or CPU usage                      |
+
+
+⚡ 7️⃣ Factors Affecting Latency
+| Layer         | Impact                                               |
+| ------------- | ---------------------------------------------------- |
+| **Kafka**     | Broker load, replication, batching (linger.ms), acks |
+| **Consumer**  | Batch size, processing logic, poll timeout           |
+| **Code**      | Serialization/deserialization, DB calls              |
+| **Pod / JVM** | GC pauses, thread contention, CPU throttling         |
+| **Network**   | Latency between pod ↔ broker                         |
+
+| Type                              | Formula                                  | Where to Measure       |
+| --------------------------------- | ---------------------------------------- | ---------------------- |
+| **Consumer Processing Latency**   | `endTime - startTime`                    | In code                |
+| **End-to-End Latency**            | `consumerReceiveTime - producerSendTime` | Using Kafka timestamps |
+| **Average Latency**               | `Σ(latency) / messageCount`              | Aggregate over time    |
+| **Percentile Latency (P95, P99)** | From monitoring tool                     | Grafana/Prometheus     |
+
+what is percentile latency:
+⚙️ 1️⃣ What is Percentile Latency?
+
+Percentile latency tells you how long most requests take, not just the average.
+
+Instead of showing one number (like average = 100 ms), you measure how fast 50%, 95%, or 99% of your requests are served.
+
+| Percentile               | Meaning                                 | Example                                                 |
+| ------------------------ | --------------------------------------- | ------------------------------------------------------- |
+| **P50 (Median)**         | 50% of requests finish within this time | If P50 = 100 ms → Half of requests ≤ 100 ms             |
+| **P90**                  | 90% of requests finish within this time | If P90 = 300 ms → 10% slower than 300 ms                |
+| **P95**                  | 95% of requests finish within this time | If P95 = 500 ms → 5% of requests > 500 ms               |
+| **P99**                  | 99% of requests finish within this time | If P99 = 800 ms → 1% of requests are slower than 800 ms |
+| **P99.9 (Tail latency)** | 99.9% complete within this time         | Extreme tail — often due to GC, DB, network, etc.       |
+
+🧠 2️:Why Percentiles Matter (and Not Just Average)
+
+The average latency can be misleading because a few very slow requests can distort it.
+
+Example:Request latencies (ms): [100, 110, 95, 105, 120, 2000]
+Average = (100 + 110 + 95 + 105 + 120 + 2000) / 6 = 421 ms
+→ Looks bad 😬
+
+But P95 = 120 ms → 95% of requests are actually fast!
+Only 1 request was an outlier (2000 ms).
+
+📌 So percentile latency helps you focus on real user experience rather than being skewed by rare spikes.
+
+⚡ 3️⃣ Real Example in Microservices or Kafka
+
+Let’s say your Kafka consumer processes 100,000 messages per minute.
+
+If:
+
+P50 = 100 ms
+
+P95 = 400 ms
+
+P99 = 1000 ms
+
+Then you can interpret it as:
+
+50% of messages are processed in under 100 ms (great 👍)
+
+95% in under 400 ms (acceptable 👌)
+
+1% (P99) taking up to 1 s (problematic tail 😬 —
+maybe due to GC pause, DB lag, or network spike)
+
+
+🔍 4️⃣ How Percentiles Are Calculated
+
+Imagine you have a list of latencies:[50, 60, 70, 80, 100, 120, 130, 150, 500, 1000]
+Step 1: Sort ascending (already sorted).
+Step 2: Calculate percentile position:
+
+Position = (Percentile / 100) * (N + 1)
+Example for P95 (10 samples):
+= 0.95 * (10 + 1) = 10.45 → between 10th and 11th value
+So P95 ≈ 1000 ms (last value).
+
+If you had thousands of values, the P95 would represent the
+latency where only 5% of requests are slower.
+
+💡 5️⃣ Why P95 and P99 Are So Important in Interviews & SLAs
+| Concept   | Reason                                                                  |
+| --------- | ----------------------------------------------------------------------- |
+| **P95**   | Used for performance SLAs — ensures 95% of users have a good experience |
+| **P99**   | Represents tail latency — ensures system stability under heavy load     |
+| **P99.9** | Used in high-scale, low-latency systems (e.g., trading, payments)       |
+
+“P95 latency ≤ 300 ms for 95% of API calls.”
+This means: out of 100 requests, only 5 can take longer than 300 ms.
+
+🔬 6️⃣ What Causes High P99 Latency (Tail Latency)
+| Category           | Examples                                                 |
+| ------------------ | -------------------------------------------------------- |
+| **Infrastructure** | Network jitter, disk I/O delay, GC pause                 |
+| **Application**    | DB lock, large message, cache miss                       |
+| **Kafka-specific** | Broker under-replication, rebalance events, backpressure |
+| **Kubernetes**     | Pod throttling, node congestion, CPU starvation          |
+
+| Metric           | Meaning                               | Typical Use                             |
+| ---------------- | ------------------------------------- | --------------------------------------- |
+| **P50 (median)** | Half of requests are faster than this | Normal performance                      |
+| **P90 / P95**    | 90–95% of requests are faster         | SLA/UX monitoring                       |
+| **P99 / P99.9**  | Only 1% or 0.1% slower                | Tail latency / anomaly detection        |
+| **Average**      | Mean of all requests                  | Not reliable for performance guarantees |
+
+🧠 Interview Tip:
+
+If an interviewer asks:
+
+“Why do we look at P95 or P99 latency instead of average?”
+
+✅ Say:
+
+Because the average hides the tail. P95/P99 latencies reveal outliers and
+reflect the real user experience under load,
+especially for distributed systems where a small fraction of slow requests
+can dominate the perceived latency.
+
+
+ 🧠 Interview Tip
+
+If asked:
+
+“Which percentile is best for analyzing high latency and why?”
+
+✅ Say:
+
+P99 latency is best for understanding high-latency behavior because it
+highlights the slowest 1% of requests
+the “tail latency” — which typically indicates performance bottlenecks
+like GC pauses, network congestion, or uneven workload distribution.
+
+Average or P95 metrics hide these rare but impactful slowdowns.
+
+Q2. What is the difference between average latency and percentile latency?
+
+Answer:
+
+Average latency = total latency / total requests → can be skewed by outliers.
+
+Percentile latency = measures distribution across requests → shows performance
+consistency
+
+Q5. What is tail latency? Why is it important?
+
+Answer:
+Tail latency refers to the slowest requests (e.g., P99 or P99.9).
+It’s important because:
+
+Even a small percentage of slow requests can degrade system reliability.
+
+In distributed systems, the slowest node determines total response time.
+
+Example:
+If 10 microservices each have P99 = 100ms,
+Combined system tail latency ≈ 1000ms due to cascading delays.
+
+🧠 3️⃣ Advanced / Senior-Level Questions
+Q7. How can you reduce P99 latency in a Java microservice?
+
+Answer:
+Key strategies:
+
+Use asynchronous / non-blocking IO (CompletableFuture, WebFlux)
+
+Optimize GC tuning (reduce full GC pauses)
+
+Use connection pooling for DB / Kafka
+
+Scale horizontally (more pods or partitions)
+
+Reduce long-tail operations (e.g., retries, external API calls)
+
+Q9. What’s the trade-off between optimizing for P95 vs P99 latency?
+
+Answer:
+
+Optimizing P95 gives good user experience for most users (cheaper).
+
+Optimizing P99 improves worst-case users but costs more (resources, infra).
+
+So, you decide based on business SLA:
+
+Banking / trading → P99 or P99.9 (strict)
+
+Analytics / batch → P95 (tolerant)
+
+🔥 5️⃣ Common Trick Question
+
+Q: “Our average latency is 100ms, but users report slowness. Why?”
+A: Because average hides tail latency — check P95/P99 metrics to see
+if 1–5% requests are spiking due to resource contention, GC, or scaling imbalance.
+
+------------------------------------------------------------------------------------------------------------>
+Important Interview question:1
+🚀 Goal:what changes will you do in order to change increase the throughput
+
+👉 Increase throughput = number of messages processed per second
+Throughput depends on:
+
+Producer efficiency (how fast it can send)
+
+Broker configuration (how fast it can store)
+
+Consumer efficiency (how fast it can read and process)
+
+We’ll focus on Producer side and Consumer side tuning,
+since brokers are usually managed separately (in cloud or cluster setups).
+
+⚙️ 2:PRODUCER SIDE OPTIMIZATION
+🧠 Key Goal:
+
+Reduce network overhead, batch more messages, and tune acknowledgements.
+
+A) Increase batch.size(implement batching)
+
+Kafka producer groups multiple records sent to the same partition into batches.
+Bigger batch = fewer network calls.
+batch.size=65536  # 64 KB or higher
+📈 Example:
+If each record = 1 KB, a batch of 64 KB → sends 64 records in one go.
+Reduces network trips → increases throughput.
+
+(B) Increase linger.ms
+
+Producer waits this much time before sending a batch, allowing more messages
+to accumulate.
+Slightly increases latency but boosts throughput.
+linger.ms=10   # waits 10 ms before sending
+💡 Tip: Start with 5–10 ms.
+Good for use cases where low latency is not critical.
+
+(C) Use Compression
+
+Reduces payload size → less network I/O.
+compression.type=snappy   # or lz4 or zstd
+
+(D) Tune acks and retries
+
+acks=1 → Leader acknowledgment only → faster but less durable
+acks=all → Slower but safe
+For throughput: choose based on reliability needs.
+acks=1
+retries=3
+
+📊 Trade-off:
+If reliability is less critical (e.g., telemetry data), use acks=1.
+If critical, use acks=all but compensate with batching and async sends.
+
+(F) Use Asynchronous Sending
+
+Avoid blocking calls like:
+producer.send(record).get();  // BAD — blocks until ack
+
+Instead use:
+producer.send(record, callback);  // GOOD — async
+This keeps the pipeline always busy
+
+(G) Use Multiple Threads / Producers
+
+Each thread can have its own producer instance.
+Parallel publishing increases total throughput.
+
+
+✅ Producer Side Summary Table
+| Setting                                 | Typical Value | Effect                          |
+| --------------------------------------- | ------------- | ------------------------------- |
+| `batch.size`                            | 32KB–128KB    | Larger batches → fewer requests |
+| `linger.ms`                             | 5–20ms        | Adds delay → better batching    |
+| `compression.type`                      | snappy / lz4  | Reduces payload size            |
+| `acks`                                  | 1             | Faster, less reliable           |
+| `buffer.memory`                         | 32MB–128MB    | Prevents producer blocking      |
+| `max.in.flight.requests.per.connection` | 5–10          | More parallel requests          |
+
+
+🧩 3️⃣ CONSUMER SIDE OPTIMIZATION
+🧠 Key Goal:
+
+Consume and process more messages per poll and parallelize processing.
+
+(A) Increase fetch.min.bytes and fetch.max.wait.ms
+
+Wait for more data to accumulate before sending to consumer.
+fetch.min.bytes=50000       # wait for at least 50 KB
+fetch.max.wait.ms=20        # or wait 20ms if less data
+This helps amortize the network overhead.
+
+(B) Increase max.poll.records
+
+Number of records returned in a single poll.
+max.poll.records=5000
+📈 Example:
+Instead of processing 500 messages per poll → process 5000 → fewer poll calls.
+
+(C) Tune Consumer Processing Parallelism
+
+Each consumer group can have up to one consumer per partition.
+So to increase throughput:
+Increase number of partitions in the topic.
+Increase number of consumer instances (pods).
+
+✅ Rule of Thumb:# of partitions >= # of consumers
+Example:
+If you have 8 partitions → scale up to 8 consumer pods.
+
+(E) Commit Offsets in Batches
+Instead of committing every record:
+consumer.commitSync();  // after processing each record ❌
+
+Batch commit:
+if (count % 1000 == 0) {
+    consumer.commitAsync();  // every 1000 messages ✅
+}
+Reduces coordination overhead with broker.
+
+✅ Consumer Side Summary Table
+| Setting              | Typical Value     | Effect                 |
+| -------------------- | ----------------- | ---------------------- |
+| `max.poll.records`   | 1000–5000         | More messages per poll |
+| `fetch.min.bytes`    | 50 KB–1 MB        | Fewer fetch requests   |
+| `fetch.max.wait.ms`  | 10–50ms           | Better batching        |
+| `enable.auto.commit` | false             | Control commit timing  |
+| `commitAsync()`      | every few seconds | Lower overhead         |
+| Consumer count       | = partitions      | Maximize parallelism   |
+
+🧮 4️⃣ Example — Tuning Scenario
+| Component          | Default | Tuned  |
+| ------------------ | ------- | ------ |
+| `batch.size`       | 16 KB   | 64 KB  |
+| `linger.ms`        | 0 ms    | 10 ms  |
+| `compression.type` | none    | snappy |
+| `acks`             | all     | 1      |
+| `max.poll.records` | 500     | 5000   |
+| `fetch.min.bytes`  | 1       | 65536  |
+
+✅ Result: Throughput increases 3–5×,
+with minor increase in latency (~10–20 ms).
+
+------------------------------------------------------------------------------------>
+Important Interview question:2
+⚡ Goal what changes will you do in order to change decrease the latency
+
+👉 Reduce latency = decrease the time from when a message is produced to
+ when it is processed by the consumer.
+
+Latency = Consumer processing time - Producer send time
+To reduce it, we optimize:
+
+Producer (send faster)
+Broker & network (less waiting)
+Consumer (read & process faster)
+
+✅ (A) Reduce linger.ms
+
+linger.ms defines how long the producer waits before sending a batch.
+A higher value helps throughput but increases latency.
+linger.ms=0  # Send immediately, no waiting
+💡 Trade-off: Lower throughput, higher responsiveness.
+
+✅ (B) Reduce batch.size
+
+batch.size is the max size of a batch (in bytes) before it’s sent.
+Smaller batch → fewer records per request → faster send.
+batch.size=16384  # 16 KB
+If batch fills up quickly, latency is unaffected, but smaller batch
+ensures quick dispatch even under low load.
+
+✅ (C) Lower acks
+
+acks defines how many broker replicas must acknowledge before the
+producer considers the message "sent."
+| acks  | Description        | Effect                    |
+| ----- | ------------------ | ------------------------- |
+| `0`   | No ack from broker | Fastest, unsafe           |
+| `1`   | Leader only        | **Fast & fairly safe** ✅  |
+| `all` | All replicas       | Safest, highest latency ❌ |
+
+For lower latency:
+acks=1
+
+✅ (F) Minimize Retries / Backoff
+
+Each retry adds delay before message is resent.
+For low-latency use cases:
+retries=0
+retry.backoff.ms=50
+
+✅ (G) Use Async Send
+
+
+⚙️ Producer-Side Example
+batch.size=16384
+linger.ms=0
+acks=1
+compression.type=lz4
+max.in.flight.requests.per.connection=5
+retries=0
+
+🧩 2️⃣ Consumer Side — Decrease Latency
+
+🎯 Focus: Poll frequently, process faster, commit asynchronously.
+
+✅ (A) Reduce fetch.max.wait.ms
+Defines how long broker waits before returning data even if
+fetch.min.bytes not reached.
+
+For lower latency:
+fetch.max.wait.ms=5  # Default is 500ms
+
+✅ (B) Reduce fetch.min.bytes
+
+If you set this too high, broker waits to fill the batch → delays delivery.
+
+Set small value for low latency:fetch.min.bytes=1
+
+✅ (C) Decrease max.poll.records
+
+Big batches mean consumer waits longer to receive and process them.
+For real-time responsiveness:max.poll.records=100  # instead of 1000–5000
+
+✅ (D) Use More Consumer Threads
+
+Parallelize processing:
+for (ConsumerRecord<String, String> record : records) {
+    executorService.submit(() -> process(record));
+}
+So one thread can poll, while others process — prevents blocking next poll.
+
+✅ (E) Asynchronous Commits
+
+Commit offsets asynchronously:consumer.commitAsync();
+instead of commitSync() which blocks until broker confirms commit.
+
+✅ (F) Tune Consumer Poll Interval
+
+Ensure poll() happens frequently:max.poll.interval.ms=300000
+# keep default unless processing is slow
+And call poll() at least every second or two to reduce waiting.
+
+⚙️ Consumer-Side Example
+fetch.min.bytes=1
+fetch.max.wait.ms=5
+max.poll.records=100
+enable.auto.commit=false
+🚀 Result: Polls smaller batches more frequently — fast message consumption.
+
+🧮 3️⃣ Example Comparison (Producer → Broker → Consumer)
+| Config                                      | Throughput          | Latency             |
+| ------------------------------------------- | ------------------- | ------------------- |
+| `batch.size=64KB`, `linger.ms=10ms`         | High throughput     | ⚠️ Higher latency   |
+| `batch.size=16KB`, `linger.ms=0`            | ⚡ Lower latency     | Moderate throughput |
+| `acks=1`, `compression=lz4`                 | ⚡ Fast delivery     | Less safe           |
+| `fetch.min.bytes=1`, `max.poll.records=100` | ⚡ Quick consumption | More network calls  |
+
+🧭 5️⃣ Interview-Level Summary
+| Area     | Parameter                          | Recommendation for Low Latency |
+| -------- | ---------------------------------- | ------------------------------ |
+| Producer | `linger.ms`                        | 0                              |
+| Producer | `batch.size`                       | Small (16 KB)                  |
+| Producer | `acks`                             | 1                              |
+| Producer | `compression.type`                 | lz4                            |
+| Producer | `max.in.flight.requests`           | 5                              |
+| Producer | `retries`                          | Low (0–1)                      |
+| Consumer | `fetch.min.bytes`                  | 1                              |
+| Consumer | `fetch.max.wait.ms`                | 5–10                           |
+| Consumer | `max.poll.records`                 | 100–500                        |
+| Consumer | Commit                             | Async                          |
+| Infra    | Co-locate producer/consumer/broker | ✅ Yes                          |
+
+⚡ 6️⃣ Trade-off: Throughput vs Latency
+
+| Goal                  | Setting                                    | Outcome                |
+| --------------------- | ------------------------------------------ | ---------------------- |
+| **Higher Throughput** | Larger batches, linger > 10ms, compression | Slower, more efficient |
+| **Lower Latency**     | Smaller batches, linger = 0, fewer retries | Faster, less efficient |
+
+✅ Example Real-World Use Cases
+| Use Case                             | Priority                  | Typical Setting                             |
+| ------------------------------------ | ------------------------- | ------------------------------------------- |
+| Fraud detection / real-time alerting | Low latency               | `linger.ms=0`, `fetch.min.bytes=1`          |
+| Log aggregation / analytics          | High throughput           | `linger.ms=20`, `batch.size=64KB`           |
+| Financial transaction system         | Low latency + reliability | `acks=all`, `linger.ms=0`, fast compression |
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------->
+🔁 When Does a Rebalance Happen?
+
+1️⃣ A new consumer joins the group.
+2️⃣ A consumer leaves (crash, timeout, manual shutdown).
+3️⃣ A topic changes (new partitions added).
+4️⃣ The subscription list changes (consumer subscribes to a new topic).
+5️⃣ Session timeout occurs (consumer fails to send heartbeats in time).
+
+🧠 Rebalance Algorithm Overview
+
+Kafka uses partition assignment strategies, also known as Partition Assignors.
+These define how partitions are redistributed when the group changes.
+
+1️⃣ Range Assignor
+
+Default in older Kafka versions
+
+Assigns consecutive ranges of partitions to each consumer.
+
+Example:
+
+6 partitions, 2 consumers →
+
+C1 gets [0,1,2]
+
+C2 gets [3,4,5]
+
+✅ Simple and fast
+
+❌ Can cause imbalance when partitions aren’t evenly divisible
+
+2️⃣ RoundRobin Assignor
+
+Assigns partitions in a round-robin fashion.
+
+Example:
+
+6 partitions, 2 consumers →
+
+C1 gets [0,2,4],
+
+C2 gets [1,3,5]
+
+✅ More balanced than Range
+
+❌ Can cause more shuffling during rebalances
+
+3️⃣ Sticky Assignor
+
+Introduced in Kafka 2.4+, default since Kafka 3.0
+
+Goal: Keep as many existing assignments as possible during rebalance.
+
+✅ Reduces churn
+
+✅ Preserves cache locality (helps low latency)
+
+✅ Fair distribution
+
+🧮 Algorithm logic:
+
+Try to reuse previous assignments (stickiness).
+
+Assign new partitions only to unassigned consumers.
+
+Reassign only if needed to balance the load.
+
+📈 Result:
+
+Fewer partition movements.
+
+Faster rebalances.
+
+Better throughput and lower latency.
+
+
+🧮 Simplified Example of Sticky Assignor
+
+Scenario:
+Topic = "orders"
+Partitions = [P0, P1, P2, P3]
+Consumers = [C1, C2]
+
+Before:
+
+C1 → [P0, P1]
+
+C2 → [P2, P3]
+
+Now C3 joins.
+
+Rebalance Goal: Even out partitions
+
+Total = 4 partitions, 3 consumers → each ~1-2 partitions
+
+Sticky assignor keeps as many old assignments as possible.
+
+After:
+
+C1 → [P0] (kept)
+
+C2 → [P2, P3] (kept)
+
+C3 → [P1] (new assignment)
+
+✅ Only P1 moved → minimal disruption
+
+
+
+4️ Cooperative Sticky Assignor (Incremental Cooperative Rebalance)
+
+Introduced in Kafka 2.4+.
+
+Improves further: avoids full-stop-the-world rebalances.
+
+Consumers gradually revoke and assign partitions incrementally.
+
+⚙️ Algorithm Steps:
+
+When a new consumer joins, only the needed partitions are reassigned.
+
+Existing consumers continue consuming unaffected partitions.
+
+Consumers send PartitionRevoke and PartitionAssign requests incrementally.
+
+✅ Benefits:
+
+No full rebalance (less downtime)
+
+Smooth scaling in/out
+
+Perfect for large-scale production clusters
+
+
+
+
+
+
+🕹️ Under the Hood – Rebalance Workflow
+
+1️⃣ Join Group Phase
+
+Consumer sends JoinGroup to the Group Coordinator.
+
+Coordinator elects a leader consumer.
+
+2️⃣ Sync Group Phase
+
+Leader assigns partitions → sends assignment to coordinator.
+
+Coordinator sends the final assignment to all members.
+
+3️⃣ Heartbeat Phase
+
+Consumers send periodic heartbeats to stay in the group.
+
+If heartbeats stop → coordinator triggers rebalance.
+
+⚡ Impact on Performance
+| Strategy           | Rebalance Time | Partition Movement | Use Case                               |
+| ------------------ | -------------- | ------------------ | -------------------------------------- |
+| Range              | Fast           | High               | Simple cases, single topic             |
+| RoundRobin         | Moderate       | High               | Multi-topic with even load             |
+| Sticky             | Fast           | Low                | Production default                     |
+| Cooperative Sticky | Very Fast      | Very Low           | **Best for large, dynamic clusters** ✅ |

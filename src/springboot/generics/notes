@@ -1,0 +1,89 @@
+why generics
+
+by default arraylist internally is an Integer array
+the arraylist which you are creating is only stores only integer
+which is not true it should stores everthing like object ,string ,
+boolean,Custom types etc
+
+Intenal arraylist provies facility to defines the types
+ArrayList<Integer> list = new ArrayList<>;
+
+advantage of generics
+1:type safety,stores on values which you have mentioned for example
+in above stores only Integer
+2:
+
+T->type
+which get executed at the runtime (using bytecode)
+
+public class CustomGenArrayList<T>{
+}
+
+you can also restrict the wildcard
+//https://docs.oracle.com/javase/tutorial/java/generics/upperBounded.html
+//here T should be either number or its subclasses
+1:->upper bounded wildcard:
+1 suppose i want my generics only to be Number type how can you restrict
+ :public class WildCardExam<T? extends Number >{
+}
+public void process(List<T? extends Number> list{}
+
+2:->Unbounded Wildcards:
+Consider the following method, printList:
+
+public static void printList(List<Object> list) {
+    for (Object elem : list)
+        System.out.println(elem + " ");
+    System.out.println();
+}
+The goal of printList is to print a list of any type, but it fails to
+
+achieve that goal — it prints only a list of Object instances;
+ it cannot print List<Integer>, List<String>, List<Double>, and so on,
+  because they are not subtypes of List<Object>.
+   To write a generic printList method, use List<?>:
+
+public static void printList(List<?> list) {
+    for (Object elem: list)
+        System.out.print(elem + " ");
+    System.out.println();
+}
+3:Lower Bounded Wildcards
+The Upper Bounded Wildcards section shows that an upper bounded wildcard
+restricts the unknown type to be a specific type or a subtype of that type and
+is represented using the extends keyword.
+In a similar way, a lower bounded wildcard restricts the unknown type to
+be a specific type or a super type of that type.
+
+A lower bounded wildcard is expressed using the wildcard character ('?'),
+following by the super keyword, followed by its lower bound: <? super A>.
+
+Note:You can specify an upper bound for a wildcard, or you can specify a lower bound,
+but you cannot specify both.
+
+Say you want to write a method that puts Integer objects into a list. To maximize
+flexibility,
+you would like the method to work on List<Integer>, List<Number>, and
+List<Object> — anything that can hold Integer values.
+
+To write the method that works on lists of Integer and the supertypes of Integer,
+such as Integer, Number, and Object,
+ you would specify List<? super Integer>.
+ The term List<Integer> is more restrictive than List<? super Integer> because
+  the former matches a list of type Integer only,
+ whereas the latter matches a list of any type that is a supertype of Integer.
+
+The following code adds the numbers 1 through 10 to the end of a list:
+
+public static void addNumbers(List<? super Integer> list) {
+    for (int i = 1; i <= 10; i++) {
+        list.add(i);
+    }
+}
+
+4:wildcard and subtyping ->in this we create tye relation between superclass
+and subclass through upperBounded wildcard and lower bound wildcard.
+
+*** NOTE: read upper bound and lower later
+
+

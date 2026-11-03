@@ -1,0 +1,244 @@
+
+java:8
+In Java 8, the most significant change in memory management is the replacement
+of Permanent Generation (PermGen) with Metaspace.
+Metaspace, unlike PermGen, is not part of the Java heap and is allocated
+ from native memory.
+This change offers more flexibility in handling class metadata and
+reduces the likelihood of OutOfMemoryError related to PermGen's fixed size.
+
+PermGen Removal:
+Java 8 eliminated PermGen, which was a fixed-size memory area used to
+store class metadata, interned strings, and other static information.
+Metaspace Introduction:
+Metaspace replaced PermGen, and it's a dynamically expanding memory area,
+allocated from native memory (outside the Java heap).
+Dynamic Sizing:
+Metaspace automatically adjusts its size based on the application's needs,
+unlike PermGen, which had a fixed size and could lead to OutOfMemoryError
+when it ran out of space
+Heap Space:
+The Java heap itself is still divided into Young Generation (for new objects)
+and Old Generation (for long-lived objects)
+
+what is class loader ->it is memory inside the jvm which locates ,reads,
+bring class byte into the memory
+
+3steps:
+1:loading
+2:linking
+3:initialization
+
+java-9
+1:of() method
+2:private method
+
+java-10
+var keyword->make your code cleaner and more readable by allowing you to
+infer variable types instead of explicitly declaring them.
+It cannot be used for class fields (instance or static variables),
+method parameters, or method return types.
+
+java-11
+isBlank() method
+
+java-12
+Switch expressions(case X -> {})
+will now be used as a statement as well as expressions.
+This makes code simplification and pattern matching possible for the switch.
+
+old way:
+DayOfWeek dayOfWeek = LocalDate.now().getDayOfWeek();
+String typeOfDay = "";
+switch (dayOfWeek) {
+    case MONDAY:
+    case TUESDAY:
+    case WEDNESDAY:
+    case THURSDAY:
+    case FRIDAY:
+        typeOfDay = "Working Day";
+        break;
+    case SATURDAY:
+    case SUNDAY:
+        typeOfDay = "Day Off";
+}
+
+new way:
+typeOfDay = switch (dayOfWeek) {
+ case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> "Working Day";
+ case SATURDAY, SUNDAY -> "Day Off";
+};
+✅ No need for break
+
+✅ Cleaner, more readable
+
+✅ switch can return a value (used as an expression)
+java-14:
+- Helpful NullPointerExceptions
+
+java-16
+a:> Record type->it is used to create immutable object.we cannot extend it as immutable
+A record is a data class that stores pure data.
+ The idea behind introducing records is to quickly create simple and
+ concise classes avoid of boilerplate code in the model POJOs.
+
+public record PersonRecord(String name, int age){}
+PersonRecord personRecord = new Personrecord("Abc",1)
+System.out.println(personRecord.age())
+
+The important difference between class and record is that a record aims to
+eliminate all the boilerplate code needed to set and get the data from the instance.
+Records transfer this responsibility to the Java compiler which generates
+the constructor, field getters, hashCode(), and equals() as well as toString()
+methods.
+
+b:>- Add Stream.toList Method
+The aim is to reduce the boilerplate with some commonly used Stream collectors,
+such as Collectors.toList and Collectors.toSet:
+List<String> integersAsString = Arrays.asList("1", "2", "3");
+//Old Way
+List<Integer> ints = integersAsString.stream().map(Integer::parseInt)
+                        .collect(Collectors).
+toList());
+//From java16 onwords
+List<Integer> intsEquivalent = integersAsString.stream()
+                                .map(Integer::parseInt).asList();
+
+java-17
+- Sealed Classes and Sealed Interfaces:
+Sealed classes and interfaces restrict which other classes or
+interfaces may extend or implement them.
+public abstract sealed class ClassName
+permits Class1, Class2, Class3 {...}
+
+
+
+sealed class Human permits Manish, Vartika, Anjali
+{
+    public void printName()
+    {
+        System.out.println("Default");
+    }
+}
+
+non-sealed class Manish extends Human
+{
+    public void printName()
+    {
+        System.out.println("Manish Sharma");
+    }
+}
+
+sealed class Vartika extends Human
+{
+    public void printName()
+    {
+        System.out.println("Vartika Dadheech");
+    }
+}
+
+final class Anjali extends Human
+{
+    public void printName()
+    {
+        System.out.println("Anjali Sharma");
+    }
+}
+
+public class Main
+{
+    public static void main(String[] args)
+    {
+        Human h1 = new Anjali();
+        Human h2 = new Vartika();
+        Human h3 = new Manish();
+
+        h1.printName();
+        h2.printName();
+        h3.printName();
+    }
+}
+
+Explanation of the above Example:
+Human is the parent class of Manish, Vartika, and Anjali.
+It is a sealed class so; other classes cannot inherit it.
+Manish, Vartika, and Anjali are child classes of the Human class,
+and it is necessary to make them either sealed, non-sealed, or final.
+ Child classes of a sealed class must be sealed, non-sealed, or final.
+If any class other than Manish, Vartika, and Anjali tries to inherit
+from the Human class, it will cause a compiler error.
+
+
+equals and hashcode method:
+->these method are present in object class
+
+Object o1 = new Object();
+object o2 =o1;
+now o1 and o2 both are pointing to the same object.
+so o1.equals(o2)->return true
+for hashcode jvm will create based on the memory address
+so o1.hashcode();
+=1000(let say)
+and o2.hashcode();
+=1000
+both o1 and o2 hashcode are equal since both are poiting to each other.
+
+
+object o3 = new Object();
+now o3 is pointing to different object
+so o1.equals(o3)->false
+now o1.hashcode()
+=2000{since it is pointing to different object}
+
+we can override equals and hashcode method in out custom class
+contract:
+if you are overriding the equlas method than you must oveeride the
+ hashcode method properly.
+meaning of if 2 object are equals then hashcode value must be the same value
+
+what if we override equals method but do not override hashcode method
+then jvm will create default hashcode method
+
+1) If two objects are equal (i.e. the equals() method returns true),
+they must have the same hashcode.
+
+2) If the hashCode() method is called multiple times on the same object,
+it must return the same result every time.
+
+3) Two different objects can have the same hash code.
+
+static and transient keyword are not serialzed
+
+1:shallow copy -> copies the exact value of primitives and the reference of
+1 obj 2 references
+A obj = new A();
+obj.i=5;
+obj.j=6;
+A obj1 = obj;
+
+2:deep copy=copies the exact copy of an obj(both primitive and reference types)
+2 object(copying 1 -1 value is not a good way ,let say if you 100 field)
+
+cloning
+A obj = new A();
+
+A obj1 =obj.clone();
+
+
+
+What is the difference between shallow copying & deep copying?
+Shallow copying creates a new object that shares the same references as
+the original object,
+while deep copying creates a completely independent copy of the object &
+all its associated objects.
+
+When should I use shallow copying vs deep copying?
+Shallow copying is useful when you want to create a new object that refers
+to the same underlying data as the original object.
+Deep copying is necessary when you want to create a true standalone copy
+of an object that is entirely independent of the original.
+
+Can I use the clone() method for deep copying?
+By default, the clone() method performs a shallow copy. However,
+you can override the clone() method to create a deep copy by manually copying
+the object's fields  & recursively cloning any nested objects.

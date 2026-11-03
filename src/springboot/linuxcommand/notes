@@ -1,0 +1,103 @@
+What are the Linux Directory Commands?
+
+pwd – The command displays the present working directory or
+        your current directory path.ex->$ pwd
+ls – This command lists the contents of a directory.ex->$ ls <options> <directory>
+cd – This lets you switch from one directory to another.ex-> $ cd/home/downloads
+mkdir – The command creates a new empty directory.ex->mkdir newdir
+rmdir – The command deletes or removes an empty directory.ex-> $ rmdir wrk/
+failed to remove as directory is not empty
+rm – Removes one or multiple files. Used with -R option to remove a
+    non-empty directory.ex->rm -rf wrk/
+
+What’s the command to check the disk space usage on a Linux system?
+use $ df command
+Typing df -h will display the disk space in a human-readable format,
+showing the used and available space for all mounted file systems.\
+
+How to List All Processes Running on a Linux?
+ $ ps aux
+
+How To view hidden files
+ $ ls -a
+
+Why is the tar command used?
+The tar command is used for extracting or creating an archived file.
+If you wish to extract all of the files from the sample.tar.gz package,
+use the following command:
+$ tar -xvzf sample.tar.gz
+
+How do you move a file from one directory to another using Linux commands?
+Moving a file from one directory to another is performed using the mv command
+in Linux. $ mv <oldname> <newname>
+If you want to move a file named “example.txt” from the current directory to
+ another directory called “folder”, you would type mv example.txt folder/.
+$ mv example.txt folder/
+
+copy command
+$ cp <oldname> <newname>
+
+What Linux command could you use to display the list of users currently
+logged into the system?
+Displaying the list of users currently logged into the system can
+be done with the who command.
+ $ who
+
+How do you change the permissions of a file in Linux?
+$ chmod
+You can change a file’s permissions in Linux using the chmod command.
+This command is used to set different access rights like read, write, and
+execute for the file owner, group, and others.
+For example, if you want to add execute permission to the owner,
+you can use chmod u+x filename.
+
+What command could you use to display the contents of a text file
+in the Linux terminal?
+The contents of a text file in the Linux terminal can be displayed
+by using the cat command followed by the file name. For example,
+cat file.txt will show the content of “file.txt”.
+$ cat file.txt
+
+What are the Different Types of Permissions in Linux?
+
+Read (r) – Allows users to read files or list a directory.
+Write (w) – Allows the user to modify or edit files.
+Execute (x) – Allows users to run the file.
+
+owner->rwx
+group->rw_
+other->r_x
+
+What is the Grep Command?
+Grep is a command line tool for searching and matching text files or
+lines in a text file.
+$ grep [options] pattern [files]
+
+The following command counts the number of occurrences of the string
+‘Unix‘ in file1.txt.
+$ grep -c "unix" file1.txt
+
+What’s the difference between the grep and awk commands?
+The awk command allows you to define actions based on patterns and
+perform arithmetic operations on text.
+The grep command focuses on searching and displaying lines matching specific criteria.
+
+How to Terminate a Running Process in Linux?
+To terminate or kill a process, use the kill command followed by the
+PID of the process.
+$ kill PID
+
+To terminate an unresponsive process/forcefully, pass the -9 option shown
+$ kill -9 PID
+
+To kill a process by name, use the killall command followed by the process name.
+For example, to terminate the Firefox process, run the command:
+$ killall firefox
+
+Check How Long the Linux System Has Been Running?
+$ uptime
+
+How to Check Linux System Information?
+To check basic system information such as kernel name and version, hostname,
+and operating system
+$ uname -a

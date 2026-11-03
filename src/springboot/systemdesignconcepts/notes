@@ -1,0 +1,352 @@
+
+
+leading the inventory management platform for all of walmart.com.
+This platform handles multiple functionalities like inventory ingestion
+(getting data from various sources),
+inventory aggregation in real time, distribution of this data to multiple consumers.
+This system also handles inventory reservations.
+The challenges we solve are of scale more often than not.
+We handle 10M msgs/min across our system. We get 1-2K ops in to our
+reservation system during holiday peaks.
+
+
+
+This platform handles multiple functionalities like inventory,
+pricing, listing, offers, duty, etc, ingestion ( from various sources).
+
+Key performance indicators (KPIs) are quantifiable measurements
+used to gauge a company’s overall long-term performance.
+Organizations use KPIs to track their progress on key business objectives.
+
+KPIs help determine a company’s strategic, financial, and operational achievements,
+especially compared to those of other businesses within the same sector.
+They can also be used to judge progress or achievements against a set of benchmarks
+or past performance.
+
+ Most early engineers (in some cases even seniors) get confused with the word
+ "consistency", but remember,
+ Consistency in ACID is different from Consistency in CAP,
+ here's a quick write-up to understand the difference.
+
+ACID consistency is about the logical correctness of data within a single database
+ and is enforced at transaction boundaries.
+ CAP consistency is about the agreement of data across distributed nodes is about
+ how real-time is the agreement across nodes.
+
+So, ensuring that there are no blogs in the database whose author does not exist
+is ACID consistency;
+ while ensuring that all the blogs are present across all the database nodes
+  across all regions is CAP consistency.
+
+You use `NOT NULL`, `UNIQUE`, and `CHECK` constraints to implement ACID consistency.
+On the other hand, you use replication, gossip, locks, and
+consensus protocols to achieve strong or eventual consistency across nodes.
+
+
+So, given that the same word is used to describe both,
+it is important to understand the context in which the word is used.
+
+interview
+
+what is remaining
+1:completes kuberntes
+2:complate distrubuted tracing
+3:complate tree problem
+4:complate stack problem
+5:complates stack problem
+6:complates striver 117 list sheet
+7:start system deisgn preparation daily 1-2 hours
+8:revise code daily 1-2 hours daily
+9:read transactional in sql
+10:read sql queries and practise it from leetcode
+
+
+@RestController
+@RequestMapping("/users")
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        User createdUser = userService.createUser(user);
+        return ResponseEntity.created(URI.create("/users/" + createdUser.getId())).body(createdUser);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
+        User updatedUser = userService.updateUser(id, user);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<User> updateUserEmail(@PathVariable Long id, @RequestBody String email)this is the only differnce {
+        User updatedUser = userService.updateUserEmail(id, email);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+}
+
+system design
+
+Issues based on horizontal and vertical scaling.
+
+Horizontal Scaling (Multiple servers)
+1. Load Balancing Required
+2. Resilient
+3. Network call (RPC - Remote Procedure Call)
+4. Data Inconsistency
+5. Scales well as users increase
+
+Vertical Scaling (Single server)
+1. N/A
+2. Single point of failure
+3. Inter process communication
+4. Consistent
+5. Hardware Limit
+
+in real scenario system we use horizontal scaling with huge multiple system
+
+consistent having gives you flexibility and gives you load balancing
+in very very clear and efficient way
+Load Balancing is a key concept to system design.
+One of the popular ways to balance load in a system is to use the
+concept of consistent hashing.
+Consistent Hashing allows requests to be mapped into hash buckets
+while allowing the system to add and remove nodes flexibly so as to
+maintain a good load factor on each machine.
+
+The standard way to hash objects is to map them to a search space, and
+then transfer the load to the mapped computer.
+A system using this policy is likely to suffer when new nodes are added or
+removed from it.
+
+Consistent hashing is a distributed hashing technique that aims to
+efficiently distribute data across a cluster of nodes (servers or storage units)
+while minimizing data remapping when nodes are added or removed.
+It works by mapping both the data and the nodes onto a circular hash
+space (often called a hash ring).
+When a node is added or removed, only a small fraction of the data
+needs to be remapped, making it ideal for dynamic environments where
+nodes can change frequently
+
+Consistent Hashing maps servers to the key space and assigns
+requests(mapped to relevant buckets, called load) to the next clockwise server.
+Servers can then store relevant request data in them while allowing
+the system flexibility and scalability.
+
+Some terms you would here in system design interviews are Fault Tolerance,
+in which case a machine crashes.
+And Scalability, in which case machines need to be added to process more requests.
+These two principles are allowed by Consistent Hashing, and
+hence it is an important building block to a system design architect's toolbox.
+
+Another term used often is request allocation. This means assigning a
+request to a server.
+Consistent hashing assigns requests to the servers in a way that the load
+is balanced are remains close to equal.
+
+Server architecture is a subjective concept, and there are outliers for many cases.
+Don't think of Consistent Hashing as a silver bullet for fault tolerance
+and scalability, but a useful concept for request allocation.
+
+ #Monolith - Single/Multiple machine running the computation
+
+Microservice - It's a division of whole works into business units which
+are turned into specific microservice.
+
+Adv Monolith:
+- Less moving parts
+- Good for small teams
+- Less duplication for tests etc
+- Faster because everything is in same box(procedure calls)
+
+Dis adv Monolith:
+- Require more context
+- Deployment is complex (everything is touching every other thing)
+- Too much responsibility on one server (one can break everything)
+- Tight coupling
+
+Adv Micro:
+- Easy to scale
+- Less context required
+- Parallel development is easy
+- Less hidden parts(more resources can be provided where it is required)
+Good video but missed some key points in favour of micro services example
+ A.You can design a system with different technologies.
+ B. You do not have to scale the entire system when load is high on just one function.
+ C. Micro services support DevOps which enable CICD.....
+ Also a microservices design are created using Domain driven design
+ which also maps to the actual business function.
+ To maintain separation of accountability I can have 2 microservices even
+ in the case you mention.
+
+Dis adv Micro:
+- Tougher to design
+
+
+#sharding
+
+Built-in support:
+NoSQL databases like MongoDB, Cassandra, and DynamoDB often have built-in
+sharding mechanisms that automatically distribute data across multiple nodes.
+Ease of use:
+Sharding in NoSQL is often simpler due to its inherent support for horizontal
+scaling and flexible data models.
+Examples:
+MongoDB uses sharding to distribute data across multiple servers,
+while Cassandra uses a combination of hashing and partitioning to
+distribute data based on keys.
+Benefits:
+NoSQL databases are designed to handle large amounts of data and traffic,
+and sharding helps to improve performance and scalability.
+
+Cassandra is designed such that it has no master or slave nodes.is based on
+peer-to-peer architecture.
+Every node is equal (can perform both reads and writes),
+therefore there is no master or slave node, that is,
+there is no master single point of failure.
+It has a ring-type architecture, that is, its nodes are logically
+distributed like a ring.
+
+
+#caching->is used when there is commonly used data(relevant data) by
+client which we cached
+caching avoid repeated work through storage
+advantage
+reduce network call
+it reduce the latency
+reduce database load
+
+disadvantage
+poor cache policy can hurt performance as there might be extra call
+Thrasing->putting and evicting the data into the cache without using them
+cache is eventual consistent ->poor for financial transaction
+
+cache policy
+when to load or evict the data from cache is called cache policy
+it decides the caches performance
+famous policy are
+LRU->evict the list recent entry from the cache
+LFU
+
+bad
+
+cache placement
+1:on server that is ->in-memory cache
+
+advantage:
+simple to implement
+faster
+better for small amount of data
+
+disadvantage:
+take care of if server fails
+take of data consistency
+
+@EnableCaching     // enabling caching in the application
+@Cacheable(cacheNames = {"studentCache"}, key = "#studentId") // find existing record
+@CachePut(cacheNames = {"studentCache"}, key="#student.studentId")// updating existing record
+@CacheEvict(cacheNames = {"studentCache"}, key = "#studentId")// deleting existing record,
+    Assume we want to delete an entry from the database as well as from the Cache.
+In that case, we can simply use @CacheEvict annotation.
+
+MemCached->
+1->Memcached is a high-performance, in-memory key-value store that is
+    commonly used as a caching system to speed up web applications.
+    It works by storing frequently accessed data in RAM, allowing for faster
+    retrieval compared to accessing data from databases or
+    other slower storage mediums in memory cached  high-performance memory
+    caching system.
+2->Memcached is also distributed, meaning that it is easy to scale out by
+    adding new nodes.
+3->As a result of its speed and scalability as well as its simple design,
+    efficient memory management,
+    and API support for most popular languages Memcached is a popular choice
+    for high-performance, large-scale caching use cases.
+
+scalability:
+     Memcached’s distributed and multithreaded architecture makes it easy to scale.
+     You can split your data among a number of nodes,
+     enabling you to scale out capacity by adding new nodes to your cluster. Moreover,
+     since Memcached is multithreaded, it can use multiple cores on a given node.
+     This makes it simple to scale up compute capacity. With Memcached you can build
+     highly scalable distributed caching solutions designed to provide fast
+     and consistent performance.
+
+It’s typically used to cache database data, API calls or page rendering chunks in
+     RAM to increase the application performance.
+    ->used by all engineer at facebook
+    how would you make this happens
+    1:high adoption rate
+    a:good documentation
+    b:error handling
+    d:meet requirement
+    *c:ease of use
+
+    look-aside cache:
+    cache is separated from the database
+    and web server is maneging the cache.
+
+->hundred of concurrent/parellel key-value read per query.
+->low latency(for obivious)
+->CAP(mainly focus consistency & availability)->Memcached-is not consistent and
+    availability so for tradeoff /requirement we can choose them between consistency
+    or availability.
+    facebook will go as high availability along with as much as possible consistency.
+    why is that {because we do not want the cache which as stale data
+    (not good for social media)}
+
+2:on database
+small cache for frequent cache
+
+
+3:global-cache like redis(cache server)OR Memcached->#caching in distributed system
+scale the cache separately
+consistently is achieved by
+ 1: write around-> Writing directly do DB and updating cache after,
+    is called write around
+ 2: write back->  writing to cache and updating DB after a while if necessary,
+    is called write back
+    write back is expensive
+
+
+ #CDN->content delivery network->A Content Delivery Network (CDN) is a
+  geographically distributed group of servers that work together to deliver content
+ (like web pages, images, videos) to users quickly and efficiently.
+ By caching into smaller chunk content based on the geographic reason
+ closer to users, CDNs reduce latency and improve website loading times,
+ enhancing the user experience
+ black box which store static content
+ close to all of your clients ,it usually very cheap and efficient for fast
+ data access
+ advantage:
+    1:reduce latency
+    2:faster->as they can connect to local server
+
+
+difference between sharding and replication
+
+Sharding and replication are both database scaling techniques,
+but they address different needs.
+Sharding distributes data across multiple servers (horizontal scaling) to
+handle large datasets and improve query performance,
+while replication creates copies of the entire dataset on multiple servers
+to enhance availability and fault tolerance.
+
+sharding:
+divide data into smaller chunks(shards)
+used for scalability and performance improvement
+
+disadvantage
+Running queries across multiple shards can be slow and complicated to implement.
+
+replication
+copies the same data into multiple servers
+used for high availability and fault tolerance
+each replicas contains full copies of data
+
+disadvantage
+Writes might not instantly reflect on all replicas, leading to inconsistency issues.
+Each replica stores the full data, leading to higher storage needs.

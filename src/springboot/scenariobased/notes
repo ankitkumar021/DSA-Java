@@ -1,0 +1,440 @@
+
+question1: You notice frequent ConnectionTimeoutException during peak hours
+ — how do you resolve this at the connection pool level?
+1. Increase Connection Pool Size
+If your database can handle more connections, increase the maximum pool size:
+spring.datasource.hikari.maximum-pool-size=50
+
+2. Tune Connection Acquisition Timeout
+Reduce or adjust the timeout setting for acquiring a connection to fail fast or
+wait longer, depending on your app needs:
+spring.datasource.hikari.connection-timeout=30000  # 30 seconds
+
+3. Optimize Database Queries
+If possible, reduce the time connections are held by:
+
+Optimizing slow queries
+Using batching
+Caching frequent lookups
+
+4. Scale Horizontally
+If traffic is consistently exceeding capacity, consider scaling your app instances
+and database to distribute load.
+
+Question 2: PreparedStatement caching is missing and causing performance
+issues — how would you implement caching?
+✅ PostgreSQL
+
+✅ Spring Boot 2.7 (which uses HikariCP by default):hikari for connection pool
+
+✅ PreparedStatement caching is not enabled by default in PostgreSQL’s JDBC driver
+
+Here’s how to enable and configure PreparedStatement caching correctly.
+You're facing DeadlockDetectedException from the DB — how would you identify
+and fix the issue from your Java side?
+
+1: Add Properties in application.properties
+
+spring.datasource.hikari.data-source-properties.prepareThreshold=1
+spring.datasource.hikari.data-source-properties.cachePrepStmts=true
+spring.datasource.hikari.data-source-properties.prepStmtCacheSize=250
+spring.datasource.hikari.data-source-properties.prepStmtCacheSqlLimit=2048
+
+In yml format
+spring:
+  datasource:
+    hikari:
+      data-source-properties:
+        prepareThreshold: 1
+        cachePrepStmts: true
+        prepStmtCacheSize: 250
+        prepStmtCacheSqlLimit: 2048
+        preparedStatementCacheQueries: 256
+
+prepareThreshold=1 tells the PostgreSQL driver to start using server-side prepared
+statements after the first use (enables caching).
+cachePrepStmts and related properties are harmless for PostgreSQL,
+but mostly useful with MySQL —
+we include them here for broader compatibility and in case of driver version
+differences.
+
+ Step 2: (Optional but Recommended) Monitor and Verify
+Enable JDBC debug logging to confirm statements are being cached and reused.
+
+logging.level.org.postgresql=DEBUG
+
+Optional: Advanced PostgreSQL Properties
+You can also explicitly control the number of cached prepared statements:
+
+spring.datasource.hikari.data-source-properties.preparedStatementCacheQueries=256
+
+question 3:
+You're facing DeadlockDetectedException from the DB — how would you identify and
+fix the issue from your Java side?
+Dealing with a DeadlockDetectedException from the database indicates that two
+or more transactions are blocking each other,
+and the database has forcibly killed one to resolve the cycle.
+
+1:Identify the cause
+A:Enable SQL and Lock Logging
+Turn on SQL logging to trace what queries are running and in what order:
+
+B:Analyze Deadlock Info from DB Logs
+Most RDBMS (e.g., PostgreSQL, MySQL) log deadlock details, including:
+
+Sessions involved
+
+SQL statements
+
+Tables/rows locked
+
+Lock order
+
+2. Fix in Java Code
+🧩 A. Consistent Lock Ordering
+Ensure all threads/transactions access resources (tables/rows) in the same order.
+Deadlocks often happen when two transactions lock A then B, and another locks B then A.
+
+ B. Use Appropriate Isolation Level
+Using too high of an isolation level (like SERIALIZABLE) increases lock contention.
+
+In Spring Boot:
+@Transactional(isolation = Isolation.READ_COMMITTED)  // or lower
+Start with READ_COMMITTED or REPEATABLE_READ unless your business logic demands more.
+
+c: Retry Transactions (Optimistic Approach)
+Wrap transactional code with a retry mechanism for deadlock-resolvable exceptions.
+
+Example: RetryTemplate (Spring Retry)
+@Retryable(
+  value = { DeadlockLoserDataAccessException.class },
+  maxAttempts = 3,
+  backoff = @Backoff(delay = 500))
+@Transactional
+public void performUpdate() {
+    // business logic
+}
+Spring will retry the transaction if a deadlock is detected.
+
+1	Log SQL + analyze DB deadlock reports
+2	Enforce consistent lock order
+3	Minimize transaction duration
+4	Tune isolation level
+5	Add transaction retries
+6	Use optimistic locking if applicable
+
+springboot:
+You’ve implemented a REST API with pagination — how would you optimize it for
+large datasets?
+Why is Pagination Important?
+When dealing with large data sets, returning all the data in a
+single API response can be problematic. It may cause:
+Performance issues: Large data sets can lead to slow response times and
+high memory usage, affecting the overall performance of the API and
+the client application.
+Network congestion: Transferring large amounts of data over the network
+can cause congestion and increased latency.
+Limited resources: Both server and client might have limitations on the amount
+of data they can handle simultaneously.
+Pagination addresses these issues by dividing the data into smaller,
+more manageable chunks.
+This way, clients can request data incrementally, as needed, and
+avoid overloading their systems.
+
+Q: Which pagination strategy should I choose?
+
+A: The choice of pagination strategy depends on your specific use case and
+requirements.
+ Offset-based pagination is the simplest to implement and is suitable for
+ small to medium-sized data sets.
+ Cursor-based and keyset pagination provide better performance and consistency
+ for large data sets but can be more complex to implement.
+
+ key-based:
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @GetMapping("/keyset")
+    public List<User> getUsers(
+            @RequestParam(required = false, defaultValue = "0") Long lastSeenId) {
+        return userRepository.findTop10ByIdGreaterThanOrderByIdAsc(lastSeenId);
+    }
+}
+GET /api/users/keyset?lastSeenId=100
+
+advantage:
+Fast for large datasets
+Avoids performance issues of OFFSET
+Consistent pagination even if data changes
+
+disadvantage:
+Can’t jump to arbitrary pages.
+Must track the last seen ID
+
+2. Cursor-Based Pagination
+
+Use a cursor token (usually base64-encoded) that contains the position
+(e.g., id, timestamp) of the last item in the page.
+It’s similar to key-based but more abstract and secure.
+
+ Decode Helper:
+public Long decodeCursor(String cursor) {
+    return Long.parseLong(new String(Base64.getDecoder().decode(cursor)));
+}
+public String encodeCursor(Long id) {
+    return Base64.getEncoder().encodeToString(String.valueOf(id).getBytes());
+}
+
+similar
+List<User> findTop10ByIdGreaterThanOrderByIdAsc(Long id);
+
+@GetMapping("/cursor")
+public Map<String, Object> getUsersWithCursor(
+        @RequestParam(required = false) String cursor) {
+
+    Long lastSeenId = (cursor != null) ? decodeCursor(cursor) : 0L;
+    List<User> users = userRepository.findTop10ByIdGreaterThanOrderByIdAsc(lastSeenId);
+
+    String nextCursor = users.size() > 0 ? encodeCursor(users.get(users.size() - 1).getId()) : null;
+
+    Map<String, Object> response = new HashMap<>();
+    response.put("data", users);
+    response.put("nextCursor", nextCursor);
+
+    return response;
+}
+pros:
+Stateless, secure (no client sees raw DB ID)
+Good for APIs and mobile apps
+Supports infinite scrolling
+cons:
+Not human-readable
+More logic to encode/decode cursor
+
+| Feature         | Key-Based          | Cursor-Based    |
+| --------------- | ------------------ | --------------- |
+| Approach        | Raw `id`/timestamp | Encoded token   |
+| Client sees ID? | Yes                | No (uses token) |
+| Stateless       | Partial            | ✅ Fully         |
+| Jump to page 5? | ❌ No               | ❌ No            |
+| API-friendly    | ✅ Yes              | ✅ Yes           |
+| Complexity      | Low                | Medium          |
+
+scaling-> go with cursor based
+| Feature                         | Cursor/Key-Based                 | Offset-Based                                    |
+| ------------------------------- | -------------------------------- | ----------------------------------------------- |
+| **Query Performance**           | ✅ Uses efficient index scans     | ❌ Slow with large offsets (e.g., OFFSET 100000) |
+| **Consistency**                 | ✅ Safe from insert/delete shifts | ❌ Can skip/duplicate data if rows change        |
+| **Latency**                     | ✅ Low and predictable            | ❌ Increases with higher pages                   |
+| **Memory/CPU usage**            | ✅ Efficient                      | ❌ Higher due to row scanning and skipping       |
+| **Scaling to Millions of Rows** | ✅ Scales smoothly                | ❌ Breaks or becomes unusable                    |
+| **API UX (infinite scroll)**    | ✅ Ideal for mobile/web           | ❌ Not suitable                                  |
+| **Statelessness (token)**       | ✅ Can be stateless with cursor   | ❌ Needs page state tracking                     |
+
+Internally how it works:
+
+Offset-Based:
+SELECT * FROM items ORDER BY id LIMIT 10 OFFSET 10000;
+-- DB must scan 10,010 rows, discard 10,000, return 10
+
+Cursor-Based (Key-Based):
+SELECT * FROM items WHERE id > :lastSeenId ORDER BY id LIMIT 10;
+-- DB uses index to jump directly to :lastSeenId, very fast
+
+question 2:
+How do you enable graceful fallback when one microservice is down in a
+ Spring Boot app?
+To enable graceful fallback when one microservice is down in a Spring Boot app,
+ you typically implement resilience patterns like Circuit Breaker, Timeouts,
+  Retries, and Fallbacks. This helps your app degrade gracefully rather than crash
+   or hang.
+example:: RestTemplate + Circuit Breaker
+
+@Service
+public class ProductService {
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @CircuitBreaker(name = "inventoryService", fallbackMethod = "fallbackInventory")
+    public String callInventoryService() {
+        return restTemplate.getForObject("http://inventory-service/api/stock", String.class);
+    }
+
+    public String fallbackInventory(Throwable t) {
+        return "Inventory service is currently unavailable. Showing cached or default data.";
+    }
+}
+resilience4j:
+  circuitbreaker:
+    instances:
+      inventoryService:
+        registerHealthIndicator: true
+        slidingWindowSize: 5
+        minimumNumberOfCalls: 5
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+  retry:
+    instances:
+      inventoryService:
+        maxAttempts: 3
+        waitDuration: 1s
+
+
+If you're using OpenFeign:
+@FeignClient(name = "inventory-service", fallback = InventoryFallback.class)
+public interface InventoryClient {
+    @GetMapping("/api/stock")
+    String getStock();
+}
+
+@Component
+public class InventoryFallback implements InventoryClient {
+    public String getStock() {
+        return "Inventory service down — fallback data.";
+    }
+}
+
+You need to log every request and response body in a Spring Boot REST app
+without impacting performance — how would you do that?
+1:Spring Cloud Sleuth (for distributed tracing)
+2:Logbook (customizable HTTP logging library)
+3:What is OpenTelemetry? 🤔
+OpenTelemetry is a popular observability framework that provides a unified way
+to capture traces, metrics, and logs from applications and services.
+ It’s vendor-agnostic, so you can export your data to tools like Zipkin,
+ Honeycomb, or any OpenTelemetry-compatible observability platform.
+
+ OpenTelemetry: The foundation for standardized tracing across services.
+ Spring Cloud Sleuth: Automatic trace and span ID generation in Spring Boot.
+ for visualization we can integrade open-telemetry with prometheus and grafana.
+
+
+
+You used synchronized to fix race conditions but performance dropped —
+how else could you fix the issue?
+Example: Use ConcurrentHashMap Instead of synchronized Map
+Map<String, Object> map = new ConcurrentHashMap<>();
+
+For counters or accumulators:
+AtomicInteger counter = new AtomicInteger();
+counter.incrementAndGet();
+
+ 2. Use ReentrantLock (More Flexible Than synchronized)
+Gives you:
+
+Try-locks
+
+Fairness policy
+
+Explicit lock/unlock
+private final ReentrantLock lock = new ReentrantLock();
+
+public void doSomething() {
+    if (lock.tryLock()) {
+        try {
+            // critical section
+        } finally {
+            lock.unlock();
+        }
+    } else {
+        // fallback or skip
+    }
+}
+
+| Use Case              | Better Than `synchronized`                  |
+| --------------------- | ------------------------------------------- |
+| Shared Map/List       | `ConcurrentHashMap`, `CopyOnWriteArrayList` |
+| Shared counter        | `AtomicInteger`, `LongAdder`                |
+| Heavy read/low write  | `ReadWriteLock`, `StampedLock`              |
+| Queued processing     | `BlockingQueue`, actor pattern              |
+| Thread-specific data  | `ThreadLocal`                               |
+| Complex lock behavior | `ReentrantLock`                             |
+
+In a producer-consumer setup, consumers are waiting infinitely —
+how do you debug this?
+When consumers wait infinitely in a producer-consumer setup,
+it usually means something is wrong with signaling or shared state management —
+ producers may not be notifying, or the queue is empty and stuck
+
+1:BlockingQueue<String> queue = new ArrayBlockingQueue<>(10);
+In Java concurrency, a BlockingQueue is an interface within the
+java.util.concurrent package that extends the Queue interface.
+It provides a thread-safe mechanism for handling shared data between threads,
+particularly in producer-consumer scenarios.
+
+The defining feature of a BlockingQueue is its "blocking" behavior.
+If a thread attempts to add an element to a full BlockingQueue, the put()
+method will block the thread until space becomes available in the queue.
+If a thread attempts to retrieve an element from an empty BlockingQueue,
+ the take() method will block the thread until an element becomes available
+ in the queue.
+
+2:a:Is the Producer Actually Producing?
+Log every production: "Produced item: X"
+Ensure the producer thread is still running
+If using a bounded queue: is it full and blocking?
+
+b. Is the Queue Empty?
+If using a BlockingQueue, consumers will block on .take() if the queue is empty.
+Use logs or debugger to check:
+
+c:check wait & notify() is written properly
+
+d:use thread dump to check further
+
+| Queue Type                           | Potential Issue                                  | Fix                                           |
+| ------------------------------------ | ------------------------------------------------ | --------------------------------------------- |
+| `BlockingQueue`                      | Empty, no producer                               | Ensure producer is running and putting        |
+| Custom queue with `wait/notify`      | Missed `notify()`, or not in loop                | Use `while`, always `notifyAll()`             |
+| Bounded queue (`ArrayBlockingQueue`) | Producer blocked on full queue                   | Add logging, increase size, or consume faster |
+| Asynchronous setup (e.g., Kafka)     | Wrong topic, partition, or consumer group config | Check offsets and logs                        |
+
+You used ThreadPoolExecutor, but it silently discards tasks —
+what went wrong in the config
+If your ThreadPoolExecutor is silently discarding tasks, it's likely
+due to a misconfigured RejectedExecutionHandler, especially the default one.
+
+| Policy                | Behavior                                                    |
+| --------------------- | ----------------------------------------------------------- |
+| `AbortPolicy`         | ❌ Throws exception (default)                                |
+| `DiscardPolicy`       | ❌ Silently discards                                         |
+| `DiscardOldestPolicy` | ❌ Removes oldest, submits new task (can starve older tasks) |
+| `CallerRunsPolicy`    | ✅ Runs task in calling thread (natural throttling)          |
+
+ThreadPoolExecutor executor = new ThreadPoolExecutor(
+    10, 20, 60L, TimeUnit.SECONDS,
+    new ArrayBlockingQueue<>(100),
+    Executors.defaultThreadFactory(),
+    new ThreadPoolExecutor.CallerRunsPolicy()  // backpressure instead of silent discard
+);
+
+@Configuration
+public class ExecutorConfig {
+
+    @Bean(name = "taskExecutor")
+    public ThreadPoolTaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+
+        executor.setCorePoolSize(10);             // core threads
+        executor.setMaxPoolSize(20);              // max threads
+        executor.setQueueCapacity(100);           // task queue size
+        executor.setThreadNamePrefix("MyAppExec-");
+        executor.setKeepAliveSeconds(60);         // optional
+
+        // Safe rejection policy — applies backpressure
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+
+        // OR: Log rejections instead of silently discarding
+        // executor.setRejectedExecutionHandler((r, e) -> {
+        //     System.err.println("Rejected task: " + r.toString());
+        // });
+
+        executor.initialize();
+        return executor;
+    }
+}

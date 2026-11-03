@@ -1,0 +1,6 @@
+A Saga is a sequence of local transactions, where:
+
+Each transaction updates data within a single service.
+
+If one transaction fails, the previous transactions are
+compensated (i.e., undone) using compensating transactions.

@@ -32,9 +32,10 @@ what is region(us-east-1):
 		example:Availability Zone A (us-east-1a),Availability Zone B (us-east-1b),
 		        Availability Zone C (us-east-1c).
 	->each availability zones has 1 or more datacenter(EC2 instance).
+	    example: let say we 6 nodes(ec2) instance we can divide into 3 AZs(2 each)
 
 how aws managed these service
-1:aws management console
+1:aws management console(CLI)
 2:command line
 
 availability zone:
@@ -76,7 +77,7 @@ availability zone:
 
 Amazon cloud front:
 is a CDN which store images and videos of a global users in regional edge cache.
-it improves the performance of a application by speed up load times and
+it improves the springboot.performance of a application by speed up load times and
 reducing the latency .
 it also integrate with s3 and elb for seamless content delivery experience.
 let say if you want to movies on netflix you do need to present in USA.
@@ -214,11 +215,11 @@ amazon has elastic block store(EBS volume):-> for persistence storage
 	->the volume is automatically within the availability zone(AZ)
 	->gp3(general purpose ssd->use case :most workload ,including databases,
 	    dev and test environments),gp2,
-	ios2(provisioned iops ssd:high performance databases,critical applications),ios1,
+	ios2(provisioned iops ssd:high springboot.performance databases,critical applications),ios1,
 	st1(throughput optimised hdd:big data ,streaming,log processing)
 
 instance store->these volume are are physically attached to the host server
-                and offer high performance
+                and offer high springboot.performance
 				->vvvi:they are not persistent (they are ephemeral in nature)
 
 
@@ -363,7 +364,7 @@ types of load balancer :
 	  load balancers
 		->operates on the connection level
 		->routes connection based on ip protocol data(L4)
-		->offers high ultra performance,low latency and TLS offloading at scale.
+		->offers high ultra springboot.performance,low latency and TLS offloading at scale.
 		->we can have static ip/elastic ip(means you can hardcode them and white list
 		    them in firewalls)
 		->supports UDP and static ip addresses as targets
@@ -436,7 +437,7 @@ amazon simple storage service(s3)
 		:newer technology
 		:much faster than HDD
 		:more expensive than HDD
-		:better performance
+		:better springboot.performance
 
 2:File based storage:
 		->a filesystem is mounted to OS using a network share,
@@ -483,7 +484,7 @@ Amazon EBS(elastic block store) and Instance stores
 Instance store volume:
 	->are ephemeral in nature(non persistent)
 	->instance store volumes are physically attached to the host and
-	    offer high performance.
+	    offer high springboot.performance.
 	->if power is off to the host server ,all the data is gone forever.
 	use case->temporary data which can be recreated or will come in near future.
 
@@ -517,7 +518,7 @@ Amazon Elastic file system(EFS):
 	->file locking:NFS client applications can use NFS v4 file locking for read
 	    and write operations on EFS files for data consistency.
 	->storage classes:there are 3 options
-		1:EFS Standard ->uses SSD for low latency performance.
+		1:EFS Standard ->uses SSD for low latency springboot.performance.
 		2:EFS infrequent access (IA)->cost effective options.used when you don't need
 		    the data regularly.
 		3:EFS Archive->even cheaper for less active data.once or twice in a year.
@@ -531,7 +532,7 @@ Amazon Elastic file system(EFS):
 	    purposes with RPO /RTO in minutes
 	Automatic backup:EPS integrates with AWS backup for automatic file system backups.
 
-	performance options:there 2 options
+	springboot.performance options:there 2 options
 		1:provided throughput ->specify a level of throughput that the file system
 		    can drive independent of the file system size.
 		2:Bursting throughput-> throughput scales with the amount of storage
