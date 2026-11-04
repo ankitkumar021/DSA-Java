@@ -1,0 +1,30 @@
+
+Cassandra:
+
+#when to use:Designing a high-write throughput system,
+             where a database like Cassandra, combined with Kafka for ingestion,
+             is a suitable choice.
+
+1. Column wide db where you can have different data type for each row
+2. Each row has a primary key of partition key:
+    partition key determines which node it belongs to and
+    cluster key determines the sort order
+3. The node the key belongs is calculated by the partition key.
+    However, since any node could go down, we can have a hash ring where
+    keys are only shifted to their neighbouring node if one node goes down.
+4. Tunable consistency per query means you can have ONE- when reading
+    a key- wait for one replica,  QUOROM- wait for a majority of replicas,
+    ALL- wait for all replicas.
+5. When a write request, the client can contact any node in the cluster,
+    that becomes the coordinator of the request and decides where to send the req
+    based replication and partition strategy
+6. First writes to memTable(in-memory) AND commit log(disk) for durability.
+   Periodically flushes to SSTable.
+   Reads check memTable first and THEN SSTable. This is how you achieve 100k+rps.
+   if fails in between we can replay(commit log replay)check the log and replay it
+7. Memtable per nodes if full it creates SStable(immutable in nature) and stored the data
+   in the disk.
+   how the update of data refelect in cassandra :for this cassandra uses the concept
+   of campaction which merge the old and new sstable data and later creates new sstable
+   and remove the older one.
+8.cassandra maintains timestamps also.

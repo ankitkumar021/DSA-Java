@@ -598,3 +598,115 @@ You can monitor heartbeat rates via JMX or metrics exporter tools.
 | ------------ | ---------------------------------------------------------------- | ------------------------------------- |
 | **Producer** | Monitor metrics/logs, error rates, health endpoints              | JMX, Spring Boot Actuator, Logs       |
 | **Consumer** | Monitor group membership and lag, heartbeat metrics, broker logs | `kafka-consumer-groups.sh`, JMX, Logs |
+
+
+scenario when duplicate message occur:
+
+1:due to ack timeout
+a:producer send the message but didn't received the ack in the time-frame
+from the consumer.so again the consumer consume the same message (duplicate).
+
+b:send the late ack  due to which time-out happens.
+
+2:when using the outbox pattern(bez of state changes and 2 atomic operation):
+a:after pushing the message from the outbox table we have to go back and mark the
+  message published.but failed update the db.so again the worker consume the same
+  message(duplicate).
+
+solution:
+a:idempotent consumer:
+
+here we check that particular message is present in the db or not
+
+details explanation:
+Tracking all successfully consumed messages can help to avoid this scenario.
+ This can be achieved by assigning a unique ID to every message created at
+ the producer side (order service), and tracking them on the consumer side
+ (fulfillment service) by storing each ID in a database table
+ (Message ID Tracking Table). When a message with a duplicate ID is
+ received(identified by searching the Message ID Tracking Table),
+ the offset is immediately updated and further processing skipped.
+
+Also, inserting the record into the Tracking and Fulfillment Tables should done as
+a DB transaction. This ensures that both actions are rollbacked in the event of
+any failure.
+
+There is a possibility for transaction to fail, after publishing message to
+the fulfillment topic. This will lead to a retry,
+which will then result in a duplicate message in the fulfillment topic.
+This approach does not address this scenario.
+
+
+Resolution: Idempotent Consumer + Transactional Outbox
+It is not possible to have a distributed transaction that would span the database
+as well as Kafka, as the latter does not support XA transactions.
+So an approach to resolve the issue, will be to have an outbox table for
+capturing events to be published. Writes to this table should be included in
+the same DB transaction which writes to the Tracking and Fulfillment tables.
+
+This ensures database writes, and message publishing to Kafka,
+are an atomic action. By using a Change Data Capture (CDC) tool,
+such as Kafka Connect or Debezium, the event can then be published
+to the fulfillment topic.
+
+Even with this approach, there is a still a possibility for duplicate POST calls,
+since retires can be triggered when there is a transaction failure followed by a
+rollback after the making the call. This is irrespective of the order of execution
+of the call. The only resolution for which, will be to make sure that the POST call
+is idempotent on the receiver side.
+
+2#best way is use deduplication:
+Deduplicate on Consumer Side+idempotent consumer+outbox pattern
+
+3:we can also also exactly once but chances of message loss is there:
+
+
+Maintain a deduplication store (Redis, database) and check for duplicates before
+processing.
+
+if (!cache.containsKey(eventId)) {
+    processMessage(record);
+    cache.put(eventId, true);
+}
+
+
+#how you handle ordering in kafka:
+1:Message are ordered within single partition.
+
+2:For multiple partition:
+
+a: Producer Strategy: Key-Based Partitioning
+
+->key should unique to distinguish like(order_id,user_id).
+->How Kafka Uses Keys: By default, Kafka hashes this key to determine which
+  partition the message belongs to. All messages sharing the exact same key
+  will always land in the same partition and remain sequentially ordered.
+
+
+b. Producer Configurations: Safe Retries
+
+Even if you use a key, network glitches can break ordering unless your producer
+is configured correctly. For example, if the producer sends Message 1,
+fails due to a network blip, sends Message 2 successfully, and
+then retries Message 1, your order is flipped.
+To prevent this, use these properties in your producer code:
+
+
+Configuration Property	Recommended Value	Why It Matters
+enable.idempotence	        true	         Crucial. Assigns a unique ID and
+                                             sequence number to messages so the
+                                             broker detects and corrects
+                                             out-of-order retries or duplicates.
+
+
+acks	                    all	             Ensures all replica brokers
+                                             acknowledge receipt before the
+                                             producer considers it a success,
+                                             mitigating data loss during broker
+                                             failovers.
+
+
+
+
+->we can also hash it consistent hashing to determine which node
+  that particular message will go in the distributed system.

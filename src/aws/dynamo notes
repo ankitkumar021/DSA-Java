@@ -1,0 +1,77 @@
+concepts
+
+A:Data model:
+    1:Table:collections of related data(like sql)
+    2:Item:is like row each with unique primary key.
+    3:Attributes:is like column ,actual data filed
+
+notes here is all column should be necessary have data or null , it can be empty also
+so we can say dynamo db is schema less.
+
+    pros:fast/pay what is stored/ migration is easy
+    cons:no reliability of correctness of data.
+
+B:dynamo indexing:
+
+1:partition key->uniquely identifier that identify the physical storage(nodes) location
+                 through hash(mainly consistent hashing).
+2:sort key->(optional which is sort the data within the partition).used for ordering
+             and range queries(each sort key we end up having b tree stored in memory
+             and used for range queries).
+both works together
+
+primary key is combination of both the thing:(partition+sort)key
+
+example :
+e-commerce application :p-key(user_id),s_key(order_id)
+chatAp application :p_key(chat_id),s_key(message_id)
+social media :p_key(user_id),s_key(post_id)
+
+what if we want to sort the data other than sort key so for that we have 2 indexes
+secondary indexes:
+    1:global secondary indexes(GSI)->different partition key and sort key from the
+                                    original table to query by any attributes.
+                                    ->eventual consistent
+                                    ->Can be created or deleted at any time.
+                                    ->No size limits on the index or partitions.
+    2:local secondary indexes(LSI):->partition key must be same as base table
+                                    ->sort key must different from base table
+                                    ->support strong consistency
+                                    ->strict 10gb limit
+
+#transaction in dynamo db:
+->it support transaction(all the operation happens atomically)
+
+#dynamo db architecture
+->scale through consistent hashing through partition key.
+
+#fault tolerance
+->writes come to leader and after this leader asynchronously propagates changes
+  to replicas across multiple AZs.
+->reading from replicas(by default eventual consistent) but can enable
+  strong consistency reads.
+
+#Dynamo db advanced feature
+
+1:Dax(dynamo db accelerator):It is in-memory caching layer which provides response
+                           in microsecond for read heavy workloads with automatic-read
+                           through caching.
+                           enable it from AWS.
+
+DDB stream:Real time change tracking of table modification(inserts,updates,deletes)
+           to trigger downstream processing like lambda functions,replication or
+           analytics.
+           use-case :you want updates on both the places,eventdb and elastic search use
+                     dynamo db stream(which can be lambda)
+
+
+#when to use it dynamo db?
+it works most of the times except the below cases:
+
+a:complex query pattern :ddb is not optimise for complex joins & subqueries.
+b:multi table transactions:ddb has limit on number of items.
+3:data model complexity:lots of gsi and lsi
+
+
+
+

@@ -1,0 +1,85 @@
+when bring caching:
+
+->it is introduced to scale the read
+->expensive queries
+->high database cpu
+->low latency
+
+how to introduce caching:
+
+
+#caching->temp storage of data that keeps recently used data handy
+         so get it much faster way next time.
+
+#Accessing data
+a:from database takes million secs as it store data in the disk.
+b:from cache takes nano secs as it store data in the memory.
+
+#where you have the cache
+a:external caching like redis/memcached
+    advantages:multiple services can read the cache data from external cache.
+b:in process caching/shared same memory and cpu as the application
+    advantage: reduce/eliminates the network call.
+    trade-off:data inconsistency let say 1 service has the  cache other won't
+                or cache update is not properly happens.
+
+c:CDN(cache data across multiple geo-graphic location)
+  mostly used for to store the static data such as media image/videos etc.
+  advantage:optimise for network latency
+
+d:client side caching: example rest apis
+    advantage:avoid network call
+    disadvantage:less control
+
+
+#Cache Architectures
+
+a:cache aside->check cache first if data is present return else get it from db
+                store it in the cache and return the data to service.
+                advantage:store only the relevant data which usr needs
+                disadvantages:add latency if cache miss.
+
+b:write through->write to the cache and sync write to db.
+                 disadvantage:unnecessary data which is not req
+                              ->cache full
+                              ->dual write problem
+                 advantage->no data loss
+                            ->slower write
+
+c:write behind/write back->similar to write through only diff is cache flush the data
+                         in batches async to the db
+                         dis:data loss in case cache crashed
+                         adv:used when you req high throughput
+
+d:read through:same as cache aside instead of application write the db in-case
+               of cache miss cache read from db as fallback.
+
+
+#cache eviction policy:
+a:LRU->evict item that haven't been used recently ,most common .
+b:LFU->evict item that are used least often
+c:FIFO->evict the oldest item first.simple but rarely right choice
+d:TTL->each item expires after a set time(eg 5min).great for the data that
+       can go stale.
+
+#cache challenges
+1:cache stampede(thundering herd)->given a scenario if cache ttl is expired and
+there is million/k of request suddenly comes to cache ,they all there is cache miss
+so all req hit the db (becomes overwhelmed). and bottleneck
+
+solution:
+a:request coalescing->here only 1 request get access to reads from db and update cache.
+b:cache warming->refresh the cache before ttl expires.
+
+2:cache consistency:cache data is not consistent(profile upload)
+
+there is no fixed solution but can answered
+a:invalidate the write: when you are writing the database check the cache and remove the
+    the old key from cache next time get the data from db and update the cache.
+b:short ttl:to update the cache with fresh data from db.
+c:if eventual consistency is fine then no problem.
+
+3:Hot Key->a particular key asked requested multiple times becomes overwhelming
+solution :
+a:spread out that key to multiple shard/cache
+b:client side caching
